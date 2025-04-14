@@ -1,0 +1,11 @@
+-keep class androidx.core.app.CoreComponentFactory { <init>(); }
+-keep class androidx.core.content.FileProvider { <init>(); }
+-keep class com.google.androidbrowserhelper.trusted.FocusActivity { <init>(); }
+-keep class com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity { <init>(); }
+-keep class com.google.androidbrowserhelper.trusted.NotificationPermissionRequestActivity { <init>(); }
+-keep class com.google.androidbrowserhelper.trusted.WebViewFallbackActivity { <init>(); }
+-keep class io.sudoself.github.Application { <init>(); }
+-keep class io.sudoself.github.DelegationService { <init>(); }
+-keep class io.sudoself.github.LauncherActivity { <init>(); }
+-keep class androidx.browser.browseractions.BrowserActionsFallbackMenuView { <init>(android.content.Context, android.util.AttributeSet); }
+

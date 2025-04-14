@@ -1,0 +1,10 @@
+io.sudoself.github.app-pngs-0 /Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/build/generated/res/pngs/release
+io.sudoself.github.app-resValues-1 /Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/build/generated/res/resValues/release
+io.sudoself.github.app-packageReleaseResources-2 /Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/build/intermediates/incremental/release/packageReleaseResources/merged.dir
+io.sudoself.github.app-packageReleaseResources-3 /Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/build/intermediates/incremental/release/packageReleaseResources/stripped.dir
+io.sudoself.github.app-release-4 /Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/build/intermediates/merged_res/release/mergeReleaseResources
+io.sudoself.github.app-main-5 /Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/res
+io.sudoself.github.app-release-6 /Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/release/res
+io.sudoself.github.app-core-1.1.0-7 /private/var/root/.gradle/caches/8.8/transforms/2144911bb09dce3a07f407e3b390637e/transformed/core-1.1.0/res
+io.sudoself.github.app-browser-1.4.0-8 /private/var/root/.gradle/caches/8.8/transforms/b511174c15fdde7dea3e957094b4390b/transformed/browser-1.4.0/res
+io.sudoself.github.app-androidbrowserhelper-2.5.0-9 /private/var/root/.gradle/caches/8.8/transforms/d3335fbdff4200978ad121d7b141def7/transformed/androidbrowserhelper-2.5.0/res

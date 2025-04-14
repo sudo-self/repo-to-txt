@@ -1,0 +1,290 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<!--
+3    Copyright 2019 Google Inc. All Rights Reserved.
+4
+5     Licensed under the Apache License, Version 2.0 (the "License");
+6     you may not use this file except in compliance with the License.
+7     You may obtain a copy of the License at
+8
+9         http://www.apache.org/licenses/LICENSE-2.0
+10
+11     Unless required by applicable law or agreed to in writing, software
+12     distributed under the License is distributed on an "AS IS" BASIS,
+13     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+14     See the License for the specific language governing permissions and
+15     limitations under the License.
+16-->
+17<!--
+18 The "package" attribute is rewritten by the Gradle build with the value of applicationId.
+19     It is still required here, as it is used to derive paths, for instance when referring
+20     to an Activity by ".MyActivity" instead of the full name. If more Activities are added to the
+21     application, the package attribute will need to reflect the correct path in order to use
+22     the abbreviated format.
+23-->
+24<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+25    package="io.sudoself.github"
+26    android:versionCode="1"
+27    android:versionName="1" >
+28
+29    <uses-sdk
+30        android:minSdkVersion="21"
+31        android:targetSdkVersion="35" />
+32
+33    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+33-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:26:9-80
+33-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:26:26-78
+34
+35    <queries>
+35-->[com.google.androidbrowserhelper:androidbrowserhelper:2.5.0] /private/var/root/.gradle/caches/8.8/transforms/d3335fbdff4200978ad121d7b141def7/transformed/androidbrowserhelper-2.5.0/AndroidManifest.xml:26:5-34:15
+36        <intent>
+36-->[com.google.androidbrowserhelper:androidbrowserhelper:2.5.0] /private/var/root/.gradle/caches/8.8/transforms/d3335fbdff4200978ad121d7b141def7/transformed/androidbrowserhelper-2.5.0/AndroidManifest.xml:27:9-33:18
+37            <action android:name="android.intent.action.VIEW" />
+37-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:137:17-68
+37-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:137:25-66
+38
+39            <category android:name="android.intent.category.BROWSABLE" />
+39-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:139:17-77
+39-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:139:27-75
+40
+41            <data android:scheme="https" />
+41-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:140:17-143:19
+41-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:140:23-45
+42        </intent>
+43    </queries>
+44
+45    <application
+45-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:35:5-186:19
+46        android:name="io.sudoself.github.Application"
+46-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:36:9-35
+47        android:allowBackup="true"
+47-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:37:9-35
+48        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+48-->[androidx.core:core:1.1.0] /private/var/root/.gradle/caches/8.8/transforms/2144911bb09dce3a07f407e3b390637e/transformed/core-1.1.0/AndroidManifest.xml:24:18-86
+49        android:extractNativeLibs="true"
+50        android:icon="@mipmap/ic_launcher"
+50-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:38:9-43
+51        android:label="@string/appName"
+51-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:39:9-40
+52        android:manageSpaceActivity="com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity"
+52-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:41:9-105
+53        android:supportsRtl="true"
+53-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:43:9-35
+54        android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+54-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:44:9-68
+55        <meta-data
+55-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:46:9-48:58
+56            android:name="asset_statements"
+56-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:47:13-44
+57            android:resource="@string/assetStatements" />
+57-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:48:13-55
+58        <meta-data
+58-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:51:13-53:58
+59            android:name="web_manifest_url"
+59-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:52:17-48
+60            android:value="@string/webManifestUrl" />
+60-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:53:17-55
+61        <meta-data
+61-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:56:9-58:52
+62            android:name="twa_generator"
+62-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:57:13-41
+63            android:value="@string/generatorApp" />
+63-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:58:13-49
+64
+65        <activity android:name="com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity" >
+65-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:65:13-69:24
+65-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:65:23-104
+66            <meta-data
+66-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:66:13-68:53
+67                android:name="android.support.customtabs.trusted.MANAGE_SPACE_URL"
+67-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:67:17-83
+68                android:value="@string/launchUrl" />
+68-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:68:17-50
+69        </activity>
+70        <activity
+70-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:72:9-147:20
+71            android:name="io.sudoself.github.LauncherActivity"
+71-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:72:19-50
+72            android:alwaysRetainTaskState="true"
+72-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:73:13-49
+73            android:exported="true"
+73-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:75:13-36
+74            android:label="@string/launcherName" >
+74-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:74:13-49
+75            <meta-data
+75-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:76:13-77:53
+76                android:name="android.support.customtabs.trusted.DEFAULT_URL"
+76-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:76:24-85
+77                android:value="@string/launchUrl" />
+77-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:77:17-50
+78            <meta-data
+78-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:79:13-81:58
+79                android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
+79-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:80:17-83
+80                android:resource="@color/colorPrimary" />
+80-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:81:17-55
+81            <meta-data
+81-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:83:13-85:62
+82                android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR_DARK"
+82-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:84:17-88
+83                android:resource="@color/colorPrimaryDark" />
+83-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:85:17-59
+84            <meta-data
+84-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:87:13-89:61
+85                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR"
+85-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:88:17-87
+86                android:resource="@color/navigationColor" />
+86-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:89:17-58
+87            <meta-data
+87-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:91:13-93:65
+88                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR_DARK"
+88-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:92:17-92
+89                android:resource="@color/navigationColorDark" />
+89-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:93:17-62
+90            <meta-data
+90-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:95:13-97:68
+91                android:name="androix.browser.trusted.NAVIGATION_BAR_DIVIDER_COLOR"
+91-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:96:17-84
+92                android:resource="@color/navigationDividerColor" />
+92-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:97:17-65
+93            <meta-data
+93-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:99:13-101:72
+94                android:name="androix.browser.trusted.NAVIGATION_BAR_DIVIDER_COLOR_DARK"
+94-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:100:17-89
+95                android:resource="@color/navigationDividerColorDark" />
+95-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:101:17-69
+96            <meta-data
+96-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:103:13-104:54
+97                android:name="android.support.customtabs.trusted.SPLASH_IMAGE_DRAWABLE"
+97-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:103:24-95
+98                android:resource="@drawable/splash" />
+98-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:104:17-52
+99            <meta-data
+99-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:106:13-107:60
+100                android:name="android.support.customtabs.trusted.SPLASH_SCREEN_BACKGROUND_COLOR"
+100-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:106:24-104
+101                android:resource="@color/backgroundColor" />
+101-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:107:17-58
+102            <meta-data
+102-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:109:13-110:71
+103                android:name="android.support.customtabs.trusted.SPLASH_SCREEN_FADE_OUT_DURATION"
+103-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:109:24-105
+104                android:value="@integer/splashScreenFadeOutDuration" />
+104-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:110:17-69
+105            <meta-data
+105-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:112:13-113:60
+106                android:name="android.support.customtabs.trusted.FILE_PROVIDER_AUTHORITY"
+106-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:112:24-97
+107                android:value="@string/providerAuthority" />
+107-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:113:17-58
+108            <meta-data
+108-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:115:13-97
+109                android:name="android.app.shortcuts"
+109-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:115:24-60
+110                android:resource="@xml/shortcuts" />
+110-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:115:61-94
+111            <meta-data
+111-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:117:13-118:56
+112                android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY"
+112-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:117:24-91
+113                android:value="@string/fallbackType" />
+113-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:118:17-53
+114            <meta-data
+114-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:124:13-125:54
+115                android:name="android.support.customtabs.trusted.SCREEN_ORIENTATION"
+115-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:124:24-92
+116                android:value="@string/orientation" />
+116-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:125:17-52
+117
+118            <intent-filter>
+118-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:131:13-134:29
+119                <action android:name="android.intent.action.MAIN" />
+119-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:132:17-69
+119-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:132:25-66
+120
+121                <category android:name="android.intent.category.LAUNCHER" />
+121-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:133:17-77
+121-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:133:27-74
+122            </intent-filter>
+123            <intent-filter android:autoVerify="true" >
+123-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:136:13-144:29
+123-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:136:28-53
+124                <action android:name="android.intent.action.VIEW" />
+124-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:137:17-68
+124-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:137:25-66
+125
+126                <category android:name="android.intent.category.DEFAULT" />
+126-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:138:17-76
+126-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:138:27-73
+127                <category android:name="android.intent.category.BROWSABLE" />
+127-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:139:17-77
+127-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:139:27-75
+128
+129                <data
+129-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:140:17-143:19
+130                    android:host="@string/hostName"
+130-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:141:21-52
+131                    android:scheme="https" />
+131-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:140:23-45
+132            </intent-filter>
+133        </activity>
+134        <activity android:name="com.google.androidbrowserhelper.trusted.FocusActivity" />
+134-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:149:9-90
+134-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:149:19-87
+135        <activity
+135-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:151:9-152:62
+136            android:name="com.google.androidbrowserhelper.trusted.WebViewFallbackActivity"
+136-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:151:19-97
+137            android:configChanges="orientation|screenSize" />
+137-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:152:13-59
+138
+139        <provider
+139-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:154:9-162:20
+140            android:name="androidx.core.content.FileProvider"
+140-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:155:13-62
+141            android:authorities="@string/providerAuthority"
+141-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:156:13-60
+142            android:exported="false"
+142-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:158:13-37
+143            android:grantUriPermissions="true" >
+143-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:157:13-47
+144            <meta-data
+144-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:159:13-161:53
+145                android:name="android.support.FILE_PROVIDER_PATHS"
+145-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:160:17-67
+146                android:resource="@xml/filepaths" />
+146-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:161:17-50
+147        </provider>
+148
+149        <service
+149-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:164:9-179:19
+150            android:name="io.sudoself.github.DelegationService"
+150-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:165:13-46
+151            android:enabled="@bool/enableNotification"
+151-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:166:13-55
+152            android:exported="@bool/enableNotification" >
+152-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:167:13-56
+153            <meta-data
+153-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:170:17-172:73
+154                android:name="android.support.customtabs.trusted.SMALL_ICON"
+154-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:171:21-81
+155                android:resource="@drawable/ic_notification_icon" />
+155-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:172:21-70
+156
+157            <intent-filter>
+157-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:175:13-178:29
+158                <action android:name="android.support.customtabs.trusted.TRUSTED_WEB_ACTIVITY_SERVICE" />
+158-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:176:17-105
+158-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:176:25-103
+159
+160                <category android:name="android.intent.category.DEFAULT" />
+160-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:138:17-76
+160-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:138:27-73
+161            </intent-filter>
+162        </service>
+163
+164        <activity android:name="com.google.androidbrowserhelper.trusted.NotificationPermissionRequestActivity" />
+164-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:182:13-118
+164-->/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/src/main/AndroidManifest.xml:182:23-115
+165    </application>
+166
+167</manifest>

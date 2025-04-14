@@ -1,0 +1,4 @@
+#Mon Apr 14 05:47:40 MDT 2025
+base.0=/Users/jesseroper/Desktop/untitled folder 8/repo-to-txt/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+renamed.0=classes.dex
+path.0=classes.dex
