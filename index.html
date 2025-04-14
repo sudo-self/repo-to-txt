@@ -1,231 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>repo-to-txt</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Repo to TXT</title>
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
       body {
         background-color: #1a202c;
         color: #e2e8f0;
       }
-      .directory-checkbox + button:focus {
-        outline: none;
-      }
-      .directory-checkbox + button:hover {
-        color: #cbd5e0;
-      }
-      .max-w-4xl {
-        background-color: #2d3748;
-        color: #e2e8f0;
-      }
-      input,
-      textarea {
-        background-color: #4a5568;
-        color: #edf2f7;
-        border: 1px solid #718096;
-      }
-      input:focus,
-      textarea:focus {
-        border-color: #63b3ed;
-        outline: none;
-      }
-      button {
-        transition: background-color 0.3s;
-      }
-      button.bg-blue-500 {
-        background-color: #4299e1;
-      }
-      button.bg-blue-500:hover {
-        background-color: #3182ce;
-      }
-      button.bg-green-500 {
-        background-color: #48bb78;
-      }
-      button.bg-green-500:hover {
-        background-color: #38a169;
-      }
-      button.bg-indigo-500 {
-        background-color: #667eea;
-      }
-      button.bg-indigo-500:hover {
-        background-color: #5a67d8;
-      }
-      button.bg-purple-500 {
-        background-color: #9f7aea;
-      }
-      button.bg-purple-500:hover {
-        background-color: #805ad5;
-      }
-      .text-gray-600 {
-        color: #a0aec0;
-      }
-      .text-gray-500 {
-        color: #cbd5e0;
-      }
-      a i {
-        color: #e2e8f0;
-      }
-      a i:hover {
-        color: #edf2f7;
-      }
-      .rounded-md {
-        background-color: #2d3748;
-        border-color: #4a5568;
-      }
-    </style>
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-  </head>
-  <body class="bg-gray-800 min-h-screen p-4 md:p-8 text-gray-200">
-    <style>
       .bg-repos {
         background-image: url("./gd.jpg");
         background-size: cover;
         background-position: center;
       }
     </style>
-    <div class="max-w-4xl mx-auto bg-repos rounded-lg shadow-md p-6 relative">
-      <div class="flex items-center justify-center mb-6">
-        <img src="./icon.png" alt="Icon" class="h-20 w-20" />
+  </head>
+
+  <body class="bg-gray-900 min-h-screen p-6 text-gray-200">
+    <div class="max-w-4xl mx-auto bg-repos rounded-2xl shadow-lg p-8 relative">
+      <div class="flex flex-col items-center mb-6">
+        <img src="./icon.png" alt="Icon" class="h-20 w-20 mb-4" />
+        <h1 class="text-4xl font-extrabold text-center">GitHub Repo to TXT</h1>
+        <img src="https://img.shields.io/badge/repo-txt-blue" alt="Badge" class="mt-4" />
       </div>
 
-      <h1 class="text-3xl font-bold text-center text-gray-200 mb-4">
-        Github Repo to TXT
-      </h1>
-
-      <center>
-        <img
-          src="https://img.shields.io/badge/repo-txt-blue"
-          alt="Badge Preview"
-        />
-      </center>
-      <div style="text-align: center; margin-top: 20px">
+      <div class="flex justify-center mt-4">
         <a
           class="github-button"
           href="https://github.com/sudo-self/repo-to-txt"
-          data-color-scheme="no-preference: light_high_contrast; light: light_high_contrast; dark: light_high_contrast;"
           data-icon="octicon-star"
           data-size="large"
           aria-label="Star sudo-self/repo-to-txt on GitHub"
-          >Star</a
         >
+          Star
+        </a>
       </div>
     </div>
-    <form id="repoForm" class="space-y-4">
+
+    <form id="repoForm" class="max-w-4xl mx-auto mt-8 space-y-6">
       <div>
-        <label for="repoUrl" class="block text-sm font-medium text-gray-300"
-          >GitHub URL:</label
-        >
+        <label for="repoUrl" class="block text-sm font-semibold mb-1">GitHub URL:</label>
         <input
           type="text"
           id="repoUrl"
           name="repoUrl"
           required
           placeholder="https://github.com/sudo-self/repo-to-txt"
-          class="mt-1 block w-full rounded-md border border-gray-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 h-10 px-2"
+          class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-400 focus:ring focus:ring-blue-300"
         />
       </div>
+
       <div class="hidden">
-        <label for="ref" class="block text-sm font-medium text-gray-300"
-          >Ref (branch/tag/commit sha):</label
-        >
+        <label for="ref" class="block text-sm font-semibold mb-1">Ref (branch/tag/commit sha):</label>
         <input
           type="text"
           id="ref"
           name="ref"
-          class="mt-1 block w-full rounded-md border border-gray-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 h-10 px-2"
+          class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-400 focus:ring focus:ring-blue-300"
         />
       </div>
+
       <div class="hidden">
-        <label for="path" class="block text-sm font-medium text-gray-300"
-          >Path (subdirectory):</label
-        >
+        <label for="path" class="block text-sm font-semibold mb-1">Path (subdirectory):</label>
         <input
           type="text"
           id="path"
           name="path"
-          class="mt-1 block w-full rounded-md border border-gray-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 h-10 px-2"
+          class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-400 focus:ring focus:ring-blue-300"
         />
       </div>
+
       <div>
-        <label
-          for="accessToken"
-          class="block text-sm font-medium text-gray-300 flex items-center"
-        >
-          Personal Access Token (optional - private repositories)
-          <button
-            type="button"
-            id="showMoreInfo"
-            class="ml-2 text-blue-500 hover:text-blue-400"
-          >
+        <label for="accessToken" class="block text-sm font-semibold mb-1 flex items-center gap-2">
+          Personal Access Token (optional)
+          <button type="button" id="showMoreInfo" class="text-blue-400 hover:text-blue-300">
             <i data-lucide="info" class="w-4 h-4"></i>
           </button>
         </label>
-        <div id="tokenInfo" class="hidden mt-2">
-          <p class="text-sm text-gray-400">
-            [This code runs in your browser. We don't use or store your token.]
-          </p>
-          <p class="mt-1">
-            <a
-              href="https://github.com/settings/tokens/new?description=repo2file&scopes=repo"
-              target="_blank"
-              class="text-sm text-blue-500 hover:text-blue-400"
-              ><i data-lucide="external-link" class="w-5 h-5 inline-block"></i>
-              Get your token</a
-            >
-          </p>
+        <div id="tokenInfo" class="hidden mt-2 text-sm text-gray-400">
+          <p>This runs in your browser. No data is stored.</p>
+          <a
+            href="https://github.com/settings/tokens/new?description=repo2file&scopes=repo"
+            target="_blank"
+            class="inline-flex items-center mt-1 text-blue-400 hover:text-blue-300"
+          >
+            <i data-lucide="external-link" class="w-4 h-4 mr-1"></i> Get your token
+          </a>
         </div>
         <input
           type="text"
           id="accessToken"
           name="accessToken"
-          class="mt-1 block w-full rounded-md border border-gray-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 h-10 px-2"
+          class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-400 focus:ring focus:ring-blue-300"
         />
       </div>
+
       <button
         type="submit"
-        class="bg-green-700 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline flex items-center justify-center"
+        class="w-full bg-green-600 hover:bg-green-500 text-white font-semibold py-3 rounded-lg flex items-center justify-center"
       >
-        <i data-lucide="folder-search" class="w-5 h-5 mr-2"></i>
-        Fetch Directory Structure
+        <i data-lucide="folder-search" class="w-5 h-5 mr-2"></i> Fetch Directory Structure
       </button>
     </form>
-    <div id="directoryStructure" class="mt-6"></div>
-    <button
-      id="generateTextButton"
-      class="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline hidden flex items-center justify-center"
-    >
-      <i data-lucide="file-text" class="w-5 h-5 mr-2"></i>
-      Generate Text File
-    </button>
-    <textarea
-      id="outputText"
-      rows="20"
-      class="mt-4 w-full p-2 border rounded-md font-mono"
-      readonly
-    ></textarea>
-    <div class="mt-4 flex space-x-4">
+
+    <div id="directoryStructure" class="max-w-4xl mx-auto mt-8"></div>
+
+    <div class="max-w-4xl mx-auto mt-6 flex flex-col items-center">
       <button
-        id="copyButton"
-        class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline hidden flex items-center justify-center"
+        id="generateTextButton"
+        class="hidden w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-lg flex items-center justify-center"
       >
-        <i data-lucide="copy" class="w-5 h-5 mr-2"></i>
-        Copy to Clipboard
+        <i data-lucide="file-text" class="w-5 h-5 mr-2"></i> Generate Text File
       </button>
-      <button
-        id="downloadButton"
-        class="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline hidden flex items-center justify-center"
-      >
-        <i data-lucide="download" class="w-5 h-5 mr-2"></i>
-        Download
-      </button>
+
+      <textarea
+        id="outputText"
+        rows="15"
+        class="w-full mt-6 p-4 bg-gray-700 border border-gray-600 rounded-lg font-mono text-gray-100"
+        readonly
+      ></textarea>
+
+      <div class="w-full flex gap-4 mt-4">
+        <button
+          id="copyButton"
+          class="hidden flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-3 rounded-lg flex items-center justify-center"
+        >
+          <i data-lucide="copy" class="w-5 h-5 mr-2"></i> Copy to Clipboard
+        </button>
+        <button
+          id="downloadButton"
+          class="hidden flex-1 bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 rounded-lg flex items-center justify-center"
+        >
+          <i data-lucide="download" class="w-5 h-5 mr-2"></i> Download
+        </button>
+      </div>
     </div>
 
     <script src="script.js"></script>
     <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <script>
+      lucide.createIcons();
+    </script>
   </body>
 </html>
 
