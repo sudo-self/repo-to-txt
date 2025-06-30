@@ -224,8 +224,55 @@ function RepoToTxt() {
       setError(err.message);
     }
   };
+    
+    const fallbackCopy = (text) => {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed"; // prevent scroll jump
+      textarea.style.top = "0";
+      textarea.style.left = "0";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
 
-  const onCopy = () => navigator.clipboard.writeText(outputText);
+      try {
+        const successful = document.execCommand("copy");
+        console.log("Fallback copy success:", successful);
+      } catch (err) {
+        console.error("Fallback copy failed:", err);
+      }
+
+      document.body.removeChild(textarea);
+    };
+
+
+    const onCopy = () => {
+      console.log("Copy function triggered");
+      if (!outputText) {
+        console.warn("No text to copy");
+        return;
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(outputText)
+          .then(() => {
+            console.log("Copied using clipboard API");
+            alert("Copied to clipboard!");
+          })
+          .catch((err) => {
+            console.error("Clipboard API failed", err);
+            fallbackCopy(outputText);
+            alert("Used fallback copy method.");
+          });
+      } else {
+        fallbackCopy(outputText);
+        alert("Copied using fallback method.");
+      }
+    };
+
+
+
+    
   const onDownload = () => {
     const blob = new Blob([outputText], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
