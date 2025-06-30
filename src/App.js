@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from "react";
+import GitHubButton from 'react-github-btn';
 import JSZip from "jszip";
 import {
   FolderSearch,
@@ -14,6 +15,7 @@ import {
   Folder,
   File,
 } from "lucide-react";
+import logo from "./logo.svg";
 import "./App.css";
 
 function RepoToTxt() {
@@ -31,7 +33,9 @@ function RepoToTxt() {
     const match = url.match(
       /^https:\/\/github\.com\/([^/]+)\/([^/]+)(\/tree\/([^/]+)(\/(.+))?)?$/
     );
-    if (!match) throw new Error("Invalid GitHub repository URL.");
+    if (!match) {
+      throw new Error("Invalid GitHub repository URL.");
+    }
     return {
       owner: match[1],
       repo: match[2],
@@ -41,12 +45,17 @@ function RepoToTxt() {
   };
 
   const fetchRepoSha = async (owner, repo, refParam, pathParam, token) => {
-    let url = `https://api.github.com/repos/${owner}/${repo}/contents/${pathParam || ""}`;
+    let apiPath = pathParam || "";
+    let url = `https://api.github.com/repos/${owner}/${repo}/contents/${apiPath}`;
     if (refParam) url += `?ref=${refParam}`;
+
     const headers = { Accept: "application/vnd.github.object+json" };
     if (token) headers.Authorization = `token ${token}`;
+
     const res = await fetch(url, { headers });
-    if (!res.ok) throw new Error("Failed to fetch SHA");
+    if (!res.ok) {
+      throw new Error("Failed to fetch SHA");
+    }
     const data = await res.json();
     return data.sha;
   };
@@ -55,6 +64,7 @@ function RepoToTxt() {
     const url = `https://api.github.com/repos/${owner}/${repo}/git/trees/${sha}?recursive=1`;
     const headers = { Accept: "application/vnd.github+json" };
     if (token) headers.Authorization = `token ${token}`;
+
     const res = await fetch(url, { headers });
     if (!res.ok) throw new Error("Failed to fetch tree");
     const data = await res.json();
@@ -125,20 +135,32 @@ function RepoToTxt() {
     const [collapsed, setCollapsed] = useState(false);
     const isDir = node.type !== "blob";
     const allPaths = isDir ? getAllFilePaths(node) : [];
-    const isCommon = !isDir && [".js", ".ts", ".jsx", ".tsx", ".py", ".cpp", ".html", ".css"].some(ext => node.path.endsWith(ext));
-    const checked = isDir ? allPaths.every((p) => selectedFiles.has(p)) : selectedFiles.has(node.path) || isCommon;
+    const isSelected = isDir
+      ? allPaths.every((p) => selectedFiles.has(p))
+      : selectedFiles.has(node.path);
+    const common = [".js", ".ts", ".jsx", ".tsx", ".py", ".cpp", ".html", ".css"];
+    const isCommon = !isDir && common.some((e) => node.path.toLowerCase().endsWith(e));
+    const checked = isDir ? isSelected : selectedFiles.has(node.path) || isCommon;
 
     return (
-      <li style={{ paddingLeft: level * 16 }}>
-        <label className="flex items-center space-x-2">
+      <li className="mb-1" style={{ paddingLeft: level * 16 }}>
+        <label className="flex items-center space-x-2 cursor-pointer select-none">
           <input
             type="checkbox"
             checked={checked}
-            onChange={() => toggleSelection(node.path, isDir, allPaths)}
+            onChange={() =>
+              toggleSelection(isDir ? null : node.path, isDir, allPaths)
+            }
+            onClick={(e) => e.stopPropagation()}
           />
           {isDir ? (
             <>
-              <button type="button" onClick={() => setCollapsed(!collapsed)}>
+              <button
+                type="button"
+                onClick={() => setCollapsed(!collapsed)}
+                className="focus:outline-none"
+                aria-label={collapsed ? "Expand folder" : "Collapse folder"}
+              >
                 {collapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
               </button>
               <Folder size={16} />
@@ -152,9 +174,14 @@ function RepoToTxt() {
           )}
         </label>
         {isDir && !collapsed && (
-          <ul className="ml-4">
+          <ul className="ml-4 mt-1">
             {Object.entries(node).map(([childName, childNode]) => (
-              <DirectoryNode key={childName} name={childName} node={childNode} level={level + 1} />
+              <DirectoryNode
+                key={childName}
+                name={childName}
+                node={childNode}
+                level={level + 1}
+              />
             ))}
           </ul>
         )}
@@ -162,28 +189,30 @@ function RepoToTxt() {
     );
   };
 
-  const fetchFileContents = useCallback(async (paths) => {
-    const pathToItem = {};
-    const flatten = (node) => {
-      if (node.type === "blob") pathToItem[node.path] = node;
-      else Object.values(node).forEach(flatten);
-    };
-    flatten(directoryTree);
-
-    const headers = accessToken ? { Authorization: `token ${accessToken}` } : {};
-    const all = [];
-
-    for (const path of paths) {
-      const file = pathToItem[path];
-      const res = await fetch(file.url, { headers });
-      const data = await res.json();
-      const content = data.encoding === "base64"
-        ? atob(data.content.replace(/\n/g, ""))
-        : data.content;
-      all.push({ path: file.path, content });
-    }
-    return all;
-  }, [directoryTree, accessToken]);
+  const fetchFileContents = useCallback(
+    async (paths) => {
+      const all = [];
+      const pathToItem = {};
+      const flatten = (node) => {
+        if (node.type === "blob") pathToItem[node.path] = node;
+        else Object.values(node).forEach(flatten);
+      };
+      flatten(directoryTree);
+      for (const path of paths) {
+        const file = pathToItem[path];
+        const headers = accessToken ? { Authorization: `token ${accessToken}` } : {};
+        const res = await fetch(file.url, { headers });
+        const data = await res.json();
+        const content =
+          data.encoding === "base64"
+            ? atob(data.content.replace(/\n/g, ""))
+            : data.content;
+        all.push({ path: file.path, content });
+      }
+      return all;
+    },
+    [directoryTree, accessToken]
+  );
 
   const onGenerateText = async () => {
     try {
@@ -208,97 +237,115 @@ function RepoToTxt() {
   };
 
   const onZip = async () => {
-    const zip = new JSZip();
-    const pathToItem = {};
-    const flatten = (node) => {
-      if (node.type === "blob") pathToItem[node.path] = node;
-      else Object.values(node).forEach(flatten);
-    };
-    flatten(directoryTree);
-
-    const headers = accessToken ? { Authorization: `token ${accessToken}` } : {};
-    let totalSize = 0;
-
-    for (const path of selectedFiles) {
-      const file = pathToItem[path];
-      const res = await fetch(file.url, { headers });
-      const blob = await res.blob();
-      zip.file(file.path, blob);
-      totalSize += blob.size;
+    try {
+      const zip = new JSZip();
+      const flatten = (node, map = {}) => {
+        if (node.type === "blob") map[node.path] = node;
+        else Object.values(node).forEach((n) => flatten(n, map));
+        return map;
+      };
+      const pathToItem = flatten(directoryTree);
+      const headers = accessToken ? { Authorization: `token ${accessToken}` } : {};
+      let totalSize = 0;
+      for (const path of selectedFiles) {
+        const file = pathToItem[path];
+        const res = await fetch(file.url, { headers });
+        const blob = await res.blob();
+        zip.file(file.path, blob);
+        totalSize += blob.size;
+      }
+      const content = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(content);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "repo_files.zip";
+      a.click();
+      URL.revokeObjectURL(url);
+      setFileSize(`ZIP: ${(totalSize / 1024).toFixed(2)} KB`);
+    } catch (err) {
+      setError(`Error creating ZIP: ${err.message}`);
     }
-
-    const content = await zip.generateAsync({ type: "blob" });
-    const url = URL.createObjectURL(content);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "repo_files.zip";
-    a.click();
-    URL.revokeObjectURL(url);
-    setFileSize(`ZIP: ${(totalSize / 1024).toFixed(2)} KB`);
   };
 
   return (
     <>
-      <div className="max-w-4xl mx-auto p-6 rounded-xl shadow bg-cover bg-center mb-6" style={{ backgroundImage: "url('/gd.jpg')" }}>
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-white mb-2">GitHub Repo to TXT</h1>
-          <div className="flex justify-center mb-4">
-            <div data-iframe-width="150" data-iframe-height="270" data-share-badge-id="c8de13c5-ae1d-42c3-8d2e-96cb8a0b2bc7" data-share-badge-host="https://www.credly.com"></div>
-            <script type="text/javascript" async src="https://cdn.credly.com/assets/utilities/embed.js"></script>
-          </div>
-          <a
-            href="https://github.com/sudo-self/repo-to-txt"
-            className="text-white underline"
-            target="_blank"
-            rel="noreferrer"
-          >
-            ⭐ Star on GitHub
-          </a>
+      <div className="bg-repos max-w-4xl mx-auto mb-6">
+        <img src={logo} alt="Logo" className="App-logo mx-auto mb-4" />
+        <h1 className="text-3xl font-bold mb-2 text-center">Github Repo to TXT</h1>
+        <img
+          src="https://img.shields.io/badge/sudo_self-repo_to_txt-blue"
+          alt="badge"
+          className="mx-auto"
+        />
+        <div className="github-button mt-4 text-center">
+          <GitHubButton href="https://github.com/sudo-self/repo-to-txt" data-color-scheme="no-preference: light; light: light; dark: light_high_contrast;" data-icon="octicon-star" data-size="large" aria-label="Star sudo-self/repo-to-txt on GitHub">Star</GitHubButton>
         </div>
       </div>
 
       <form onSubmit={onSubmit} className="max-w-4xl mx-auto space-y-6">
         <input
-          className="w-full p-3 rounded bg-gray-800 border border-gray-600 text-white"
+          className="w-full p-3 rounded bg-black border border-gray-600 text-white font-mono"
           placeholder="https://github.com/user/repo"
           value={repoUrl}
           onChange={(e) => setRepoUrl(e.target.value)}
+          spellCheck={false}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
         />
-        <div className="text-sm text-white">
-          Access Token (optional)
-          <button type="button" onClick={() => setTokenInfoVisible(!tokenInfoVisible)}>
+        <div className="text-sm text-white flex items-center space-x-2">
+          <span>Access Token (optional)</span>
+          <button
+            type="button"
+            onClick={() => setTokenInfoVisible(!tokenInfoVisible)}
+            className="focus:outline-none"
+            aria-label="Toggle token info"
+          >
             {tokenInfoVisible ? <X size={14} /> : <Info size={14} />}
           </button>
-          {tokenInfoVisible && (
-            <div className="mt-1">
-              <a
-                href="https://github.com/settings/tokens/new"
-                target="_blank"
-                rel="noreferrer"
-                className="text-blue-400"
-              >
-                <ExternalLink size={14} className="inline mr-1" />
-                Generate Token
-              </a>
-            </div>
-          )}
         </div>
+        {tokenInfoVisible && (
+          <div className="max-w-4xl mx-auto mt-1 text-blue-400">
+            <a
+              href="https://github.com/settings/tokens/new"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center space-x-1 hover:underline"
+            >
+              <ExternalLink size={14} />
+              <span>Generate Token</span>
+            </a>
+          </div>
+        )}
         <input
-          className="w-full p-3 rounded bg-gray-800 border border-gray-600 text-white"
+          type="password"
+          className="w-full p-3 rounded bg-black border border-gray-600 text-white font-mono"
+          placeholder="Paste your token here"
           value={accessToken}
           onChange={(e) => setAccessToken(e.target.value)}
+          spellCheck={false}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
         />
-        <button type="submit" className="w-full bg-green-600 py-3 rounded text-white flex justify-center items-center">
-          <FolderSearch size={18} className="mr-2" />
-          Fetch Directory
+        <button
+          type="submit"
+          className="w-full bg-indigo-700 py-3 rounded text-white flex justify-center items-center space-x-2"
+        >
+          <FolderSearch size={18} />
+          <span>Fetch Directory</span>
         </button>
       </form>
 
-      {error && <div className="max-w-4xl mx-auto mt-4 text-red-400">{error}</div>}
+      {error && (
+        <div className="max-w-4xl mx-auto mt-4 text-red-400 font-semibold">
+          {error}
+        </div>
+      )}
 
       {directoryTree && (
         <>
-          <div className="max-w-4xl mx-auto mt-6 bg-gray-900 p-4 rounded overflow-auto max-h-96 text-sm text-white">
+          <div className="max-w-4xl mx-auto mt-6 bg-black p-4 rounded overflow-auto max-h-96 text-sm text-gray-200">
             <ul>
               {Object.entries(directoryTree).map(([name, node]) => (
                 <DirectoryNode key={name} name={name} node={node} />
@@ -307,31 +354,49 @@ function RepoToTxt() {
           </div>
 
           <div className="max-w-4xl mx-auto mt-6 space-y-4">
-            <button className="w-full bg-green-500 text-white py-3 rounded flex justify-center" onClick={onGenerateText}>
-              <FileText className="mr-2" />
-              Generate Text
+            <button
+              type="button"
+              className="w-full bg-green-700 text-white py-3 rounded flex justify-center items-center space-x-2"
+              onClick={onGenerateText}
+            >
+              <FileText />
+              <span>Generate Text</span>
             </button>
             <textarea
-              className="w-full bg-gray-800 text-white p-3 rounded"
+              className="w-full bg-black text-white p-3 rounded font-mono"
               rows={10}
               readOnly
               value={outputText}
             />
             <div className="flex gap-2">
-              <button className="flex-1 bg-blue-600 text-white py-2 rounded" onClick={onCopy}>
-                <Copy className="mr-1 inline" />
+              <button
+                type="button"
+                className="flex-1 bg-indigo-600 text-white py-2 rounded flex justify-center items-center gap-1"
+                onClick={onCopy}
+              >
+                <Copy />
                 Copy
               </button>
-              <button className="flex-1 bg-cyan-600 text-white py-2 rounded" onClick={onDownload}>
-                <Download className="mr-1 inline" />
+              <button
+                type="button"
+                className="flex-1 bg-cyan-600 text-white py-2 rounded flex justify-center items-center gap-1"
+                onClick={onDownload}
+              >
+                <Download />
                 Download .txt
               </button>
-              <button className="flex-1 bg-gray-700 text-white py-2 rounded" onClick={onZip}>
-                <Archive className="mr-1 inline" />
+              <button
+                type="button"
+                className="flex-1 bg-gray-600 text-white py-2 rounded flex justify-center items-center gap-1"
+                onClick={onZip}
+              >
+                <Archive />
                 ZIP
               </button>
             </div>
-            {fileSize && <p className="text-xs text-gray-400">{fileSize}</p>}
+            {fileSize && (
+              <p className="text-xs text-gray-400 text-center">{fileSize}</p>
+            )}
           </div>
         </>
       )}
@@ -340,4 +405,5 @@ function RepoToTxt() {
 }
 
 export default RepoToTxt;
+
 
