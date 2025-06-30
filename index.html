@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Repo to TXT</title>
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+      body {
+        background-color: #1a202c;
+        color: #e2e8f0;
+      }
+      .bg-repos {
+        background-image: url("https://pub-c1de1cb456e74d6bbbee111ba9e6c757.r2.dev/gd.jpg");
+        background-size: cover;
+        background-position: center;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-900 min-h-screen p-6 text-gray-200">
+    <div class="max-w-4xl mx-auto bg-repos rounded-2xl shadow-lg p-8 relative">
+      <div class="flex flex-col items-center mb-6">
+        <img src="https://pub-c1de1cb456e74d6bbbee111ba9e6c757.r2.dev/icon.png" alt="Icon" class="h-20 w-20 mb-4" />
+        <h1 class="text-4xl font-extrabold text-center">GitHub Repo to TXT</h1>
+        <img src="https://img.shields.io/badge/repo-txt-blue" alt="Badge" class="mt-4" />
+      </div>
+      <div class="flex justify-center mt-4">
+        <a class="github-button" href="https://github.com/sudo-self/repo-to-txt" data-icon="octicon-star" data-size="large" aria-label="Star sudo-self/repo-to-txt on GitHub">Star</a>
+      </div>
+    </div>
+
+    <form id="repoForm" class="max-w-4xl mx-auto mt-8 space-y-6">
+      <div>
+        <label for="repoUrl" class="block text-sm font-semibold mb-1">GitHub URL</label>
+        <input
+          type="text"
+          id="repoUrl"
+          name="repoUrl"
+          required
+          placeholder="https://github.com/username/repo"
+          class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-400 focus:ring focus:ring-blue-300"
+        />
+      </div>
+      <div class="hidden">
+        <label for="ref" class="block text-sm font-semibold mb-1">Ref (branch/tag/commit sha):</label>
+        <input
+          type="text"
+          id="ref"
+          name="ref"
+          class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-400 focus:ring focus:ring-blue-300"
+        />
+      </div>
+      <div class="hidden">
+        <label for="path" class="block text-sm font-semibold mb-1">Path (subdirectory):</label>
+        <input
+          type="text"
+          id="path"
+          name="path"
+          class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-400 focus:ring focus:ring-blue-300"
+        />
+      </div>
+      <div>
+        <label for="accessToken" class="block text-sm font-semibold mb-1 flex items-center gap-2">
+          Personal Access Token (optional)
+          <button type="button" id="showMoreInfo" class="text-blue-400 hover:text-blue-300">
+            <i data-lucide="info" class="w-4 h-4"></i>
+          </button>
+        </label>
+        <div id="tokenInfo" class="hidden mt-2 text-sm text-gray-400">
+          <p>This runs in your browser. No data is stored.</p>
+          <a
+            href="https://github.com/settings/tokens/new?description=repo2file&scopes=repo"
+            target="_blank"
+            class="inline-flex items-center mt-1 text-blue-400 hover:text-blue-300"
+            rel="noopener noreferrer"
+            ><i data-lucide="external-link" class="w-4 h-4 mr-1"></i> Get your token</a
+          >
+        </div>
+        <input
+          type="text"
+          id="accessToken"
+          name="accessToken"
+          class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-400 focus:ring focus:ring-blue-300"
+        />
+      </div>
+      <button
+        type="submit"
+        class="w-full bg-green-700 hover:bg-indigo-500 text-white font-semibold py-3 rounded-lg flex items-center justify-center"
+      >
+        <i data-lucide="folder-search" class="w-5 h-5 mr-2"></i> Fetch Directory Structure
+      </button>
+    </form>
+
+    <div id="directoryStructure" class="max-w-4xl mx-auto mt-8"></div>
+
+    <div class="max-w-4xl mx-auto mt-6 flex flex-col items-center">
+      <button
+        id="generateTextButton"
+        class="hidden w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-lg flex items-center justify-center"
+        type="button"
+      >
+        <i data-lucide="file-text" class="w-5 h-5 mr-2"></i> Generate Text File
+      </button>
+      <textarea
+        id="outputText"
+        rows="15"
+        class="w-full mt-6 p-4 bg-gray-700 border border-gray-600 rounded-lg font-mono text-gray-100"
+        readonly
+      ></textarea>
+      <div class="w-full flex flex-col md:flex-row gap-4 mt-4">
+        <button
+          id="copyButton"
+          class="hidden flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-3 rounded-lg flex items-center justify-center"
+          type="button"
+        >
+          <i data-lucide="copy" class="w-5 h-5 mr-2"></i> Copy to Clipboard
+        </button>
+        <button
+          id="downloadButton"
+          class="hidden flex-1 bg-cyan-500 hover:bg-cyan-800 text-white font-semibold py-3 rounded-lg flex items-center justify-center"
+          type="button"
+        >
+          <i data-lucide="download" class="w-5 h-5 mr-2"></i> Download TXT
+        </button>
+        <button
+          id="zipButton"
+          class="hidden flex-1 bg-gray-500 hover:bg-gray-800 text-white font-semibold py-3 rounded-lg flex items-center justify-center"
+          type="button"
+        >
+          <i data-lucide="archive" class="w-5 h-5 mr-2"></i> Repo ZIP
+        </button>
+      </div>
+      <div id="fileSize" class="text-sm mt-2 text-gray-400 hidden"></div>
+    </div>
+
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        lucide.createIcons();
+
+        const repoForm = document.getElementById("repoForm");
+        const generateTextButton = document.getElementById("generateTextButton");
+        const outputText = document.getElementById("outputText");
+        const copyButton = document.getElementById("copyButton");
+        const downloadButton = document.getElementById("downloadButton");
+        const zipButton = document.getElementById("zipButton");
+        const fileSizeEl = document.getElementById("fileSize");
+        const tokenInfo = document.getElementById("tokenInfo");
+        const showMoreInfoButton = document.getElementById("showMoreInfo");
+
+        showMoreInfoButton.addEventListener("click", () => {
+          tokenInfo.classList.toggle("hidden");
+          const icon = showMoreInfoButton.querySelector("[data-lucide]");
+          if (icon) {
+            if (tokenInfo.classList.contains("hidden")) {
+              icon.setAttribute("data-lucide", "info");
+            } else {
+              icon.setAttribute("data-lucide", "x");
+            }
+            lucide.createIcons();
+          }
+        });
+
+        repoForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          outputText.value = "";
+          fileSizeEl.classList.add("hidden");
+          fileSizeEl.textContent = "";
+          copyButton.style.display = "none";
+          downloadButton.style.display = "none";
+          zipButton.style.display = "none";
+          generateTextButton.style.display = "none";
+
+          const repoUrl = document.getElementById("repoUrl").value.trim();
+          const ref = document.getElementById("ref").value.trim();
+          const path = document.getElementById("path").value.trim();
+          const accessToken = document.getElementById("accessToken").value.trim();
+
+          try {
+            const { owner, repo, refFromUrl, pathFromUrl } = parseRepoUrl(repoUrl);
+            const finalRef = ref || refFromUrl || "main";
+            const finalPath = path || pathFromUrl || "";
+
+            const sha = await fetchRepoSha(owner, repo, finalRef, finalPath, accessToken);
+            const tree = await fetchRepoTree(owner, repo, sha, accessToken);
+
+            displayDirectoryStructure(tree);
+
+            generateTextButton.style.display = "flex";
+          } catch (err) {
+            outputText.value = `Error fetching repository contents: ${err.message}\n\nPlease ensure:\n1. The repository URL is correct and accessible.\n2. You have the necessary permissions to access the repository.\n3. If it's a private repository, you've provided a valid access token.\n4. The specified branch/tag and path (if any) exist in the repository.`;
+          }
+        });
+
+        generateTextButton.addEventListener("click", async () => {
+          outputText.value = "";
+          const accessToken = document.getElementById("accessToken").value.trim();
+
+          try {
+            const selectedFiles = getSelectedFiles();
+            if (selectedFiles.length === 0) {
+              throw new Error("No files selected");
+            }
+
+            const fileContents = await fetchFileContents(selectedFiles, accessToken);
+            const formattedText = formatRepoContents(fileContents);
+            outputText.value = formattedText;
+
+            copyButton.style.display = "flex";
+            downloadButton.style.display = "flex";
+            zipButton.style.display = "flex";
+            fileSizeEl.classList.add("hidden");
+            fileSizeEl.textContent = "";
+          } catch (err) {
+            outputText.value = `Error generating text file: ${err.message}\n\nPlease ensure:\n1. You have selected at least one file from the directory structure.\n2. Your access token (if provided) is valid and has the necessary permissions.\n3. You have a stable internet connection.\n4. The GitHub API is accessible and functioning normally.`;
+          }
+        });
+
+        copyButton.addEventListener("click", () => {
+          outputText.select();
+          navigator.clipboard
+            .writeText(outputText.value)
+            .then(() => {
+              console.log("Text copied to clipboard");
+            })
+            .catch((err) => {
+              console.error("Failed to copy text: ", err);
+            });
+        });
+
+        downloadButton.addEventListener("click", () => {
+          const text = outputText.value;
+          if (!text.trim()) {
+            outputText.value = "Error: No content to download. Please generate the text file first.";
+            return;
+          }
+          const blob = new Blob([text], { type: "text/plain" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "repo.txt";
+          a.click();
+          URL.revokeObjectURL(url);
+        });
+
+        zipButton.addEventListener("click", async () => {
+          const accessToken = document.getElementById("accessToken").value.trim();
+          const selectedFiles = document.querySelectorAll(
+            "#directoryStructure input[type='checkbox']:checked:not(.directory-checkbox)"
+          );
+          if (selectedFiles.length === 0) {
+            outputText.value = "Please select at least one file.";
+            return;
+          }
+
+          const zip = new JSZip();
+          const headers = (token) => (token ? { Authorization: `token ${token}` } : {});
+
+          let totalSize = 0;
+
+          try {
+            await Promise.all(
+              Array.from(selectedFiles).map(async (cb) => {
+                const { url, path } = JSON.parse(cb.value);
+                const response = await fetch(url, { headers: headers(accessToken) });
+                if (!response.ok) {
+                  throw new Error(`Failed to fetch ${path} (status ${response.status})`);
+                }
+                const blob = await response.blob();
+                zip.file(path, blob);
+                totalSize += blob.size;
+              })
+            );
+
+            fileSizeEl.textContent = `ZIP size: ${(totalSize / 1024).toFixed(2)} KB`;
+            fileSizeEl.classList.remove("hidden");
+
+            const blob = await zip.generateAsync({ type: "blob" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "repo_files.zip";
+            a.click();
+            URL.revokeObjectURL(url);
+          } catch (err) {
+            outputText.value = `Error creating ZIP: ${err.message}`;
+          }
+        });
+
+        function parseRepoUrl(url) {
+          url = url.replace(/\/$/, "");
+          const urlPattern =
+            /^https:\/\/github\.com\/([^\/]+)\/([^\/]+)(\/tree\/([^\/]+)(\/(.+))?)?$/;
+          const match = url.match(urlPattern);
+          if (!match) {
+            throw new Error(
+              "Invalid GitHub repository URL. Please ensure the URL is in the correct format: https://github.com/owner/repo or https://github.com/owner/repo/tree/branch/path"
+            );
+          }
+          return {
+            owner: match[1],
+            repo: match[2],
+            refFromUrl: match[4],
+            pathFromUrl: match[6],
+          };
+        }
+
+        async function fetchRepoSha(owner, repo, ref, path, token) {
+          // Construct the contents API URL
+          let apiPath = path ? `${path}` : "";
+          let url = `https://api.github.com/repos/${owner}/${repo}/contents/${apiPath}`;
+          if (ref) url += `?ref=${ref}`;
+
+          const headers = { Accept: "application/vnd.github.object+json" };
+          if (token) {
+            headers["Authorization"] = `token ${token}`;
+          }
+
+          const response = await fetch(url, { headers });
+          if (!response.ok) {
+            if (response.status === 403 && response.headers.get("X-RateLimit-Remaining") === "0") {
+              throw new Error(
+                "GitHub API rate limit exceeded. Please try again later or provide a valid access token to increase your rate limit."
+              );
+            }
+            if (response.status === 404) {
+              throw new Error(
+                "Repository, branch, or path not found. Please check that the URL, branch/tag, and path are correct and accessible."
+              );
+            }
+            throw new Error(
+              `Failed to fetch repository SHA. Status: ${response.status}. Please check your input and try again.`
+            );
+          }
+          const data = await response.json();
+          return data.sha;
+        }
+
+        async function fetchRepoTree(owner, repo, sha, token) {
+          const url = `https://api.github.com/repos/${owner}/${repo}/git/trees/${sha}?recursive=1`;
+          const headers = { Accept: "application/vnd.github+json" };
+          if (token) {
+            headers["Authorization"] = `token ${token}`;
+          }
+          const response = await fetch(url, { headers });
+          if (!response.ok) {
+            if (response.status === 403 && response.headers.get("X-RateLimit-Remaining") === "0") {
+              throw new Error(
+                "GitHub API rate limit exceeded. Please try again later or provide a valid access token to increase your rate limit."
+              );
+            }
+            throw new Error(
+              `Failed to fetch repository tree. Status: ${response.status}. Please check your input and try again.`
+            );
+          }
+          const data = await response.json();
+          return data.tree;
+        }
+
+        function displayDirectoryStructure(tree) {
+          tree = tree.filter((item) => item.type === "blob");
+          tree = sortContents(tree);
+          const container = document.getElementById("directoryStructure");
+          container.innerHTML = "";
+          const rootUl = document.createElement("ul");
+          container.appendChild(rootUl);
+
+          const directoryStructure = {};
+
+          tree.forEach((item) => {
+            // Ensure leading slash for consistency
+            item.path = item.path.startsWith("/") ? item.path : "/" + item.path;
+            const pathParts = item.path.split("/");
+            let currentLevel = directoryStructure;
+
+            pathParts.forEach((part, index) => {
+              if (part === "") {
+                part = "./";
+              }
+              if (!currentLevel[part]) {
+                currentLevel[part] = index === pathParts.length - 1 ? item : {};
+              }
+              currentLevel = currentLevel[part];
+            });
+          });
+
+          function createTreeNode(name, item, parentUl) {
+            const li = document.createElement("li");
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            const commonExtensions = [".js", ".py", ".java", ".cpp", ".html", ".css", ".ts", ".jsx", ".tsx"];
+            const fileName = name.toLowerCase();
+            const isCommonFile = commonExtensions.some((ext) => fileName.endsWith(ext));
+            checkbox.checked = isCommonFile;
+            checkbox.className = "mr-2";
+
+            if (typeof item === "object" && (!item.type || typeof item.type !== "string")) {
+              // Directory
+              checkbox.classList.add("directory-checkbox");
+              li.appendChild(checkbox);
+
+              const collapseButton = document.createElement("button");
+              collapseButton.innerHTML = '<i data-lucide="chevron-down" class="w-4 h-4"></i>';
+              collapseButton.className = "mr-1 focus:outline-none";
+              li.appendChild(collapseButton);
+
+              const folderIcon = document.createElement("i");
+              folderIcon.setAttribute("data-lucide", "folder");
+              folderIcon.className = "inline-block w-4 h-4 mr-1";
+              li.appendChild(folderIcon);
+              li.appendChild(document.createTextNode(name));
+              const ul = document.createElement("ul");
+              ul.className = "ml-6 mt-2";
+              li.appendChild(ul);
+
+              for (const [childName, childItem] of Object.entries(item)) {
+                createTreeNode(childName, childItem, ul);
+              }
+
+              checkbox.addEventListener("change", function () {
+                const childCheckboxes = li.querySelectorAll("input[type='checkbox']");
+                childCheckboxes.forEach((childBox) => {
+                  childBox.checked = this.checked;
+                });
+              });
+
+              collapseButton.addEventListener("click", () => {
+                ul.classList.toggle("hidden");
+                const icon = collapseButton.querySelector("i");
+                if (icon) {
+                  if (ul.classList.contains("hidden")) {
+                    icon.setAttribute("data-lucide", "chevron-right");
+                  } else {
+                    icon.setAttribute("data-lucide", "chevron-down");
+                  }
+                  lucide.createIcons();
+                }
+              });
+
+              parentUl.appendChild(li);
+              lucide.createIcons();
+            } else if (item && item.type === "blob") {
+              // File
+              checkbox.value = JSON.stringify({ url: item.url, path: item.path });
+              li.appendChild(checkbox);
+
+              const fileIcon = document.createElement("i");
+              fileIcon.setAttribute("data-lucide", "file");
+              fileIcon.className = "inline-block w-4 h-4 mr-1";
+              li.appendChild(fileIcon);
+              li.appendChild(document.createTextNode(name));
+              parentUl.appendChild(li);
+            }
+          }
+
+          for (const [name, item] of Object.entries(directoryStructure)) {
+            createTreeNode(name, item, rootUl);
+          }
+          lucide.createIcons();
+        }
+
+        function sortContents(contents) {
+          return contents.sort((a, b) => {
+            if (a.path < b.path) return -1;
+            if (a.path > b.path) return 1;
+            return 0;
+          });
+        }
+
+        function getSelectedFiles() {
+          const checkedBoxes = document.querySelectorAll(
+            "#directoryStructure input[type='checkbox']:checked:not(.directory-checkbox)"
+          );
+          return Array.from(checkedBoxes).map((cb) => JSON.parse(cb.value));
+        }
+
+        async function fetchFileContents(selectedFiles, token) {
+          const headers = token ? { Authorization: `token ${token}` } : {};
+          const results = [];
+
+          for (const file of selectedFiles) {
+            const response = await fetch(file.url, { headers });
+            if (!response.ok) {
+              throw new Error(`Failed to fetch file: ${file.path}`);
+            }
+            const data = await response.json();
+            let content = "";
+            if (data.encoding === "base64") {
+              content = atob(data.content.replace(/\n/g, ""));
+            } else {
+              content = data.content;
+            }
+            results.push({ path: file.path, content });
+          }
+          return results;
+        }
+
+        function formatRepoContents(files) {
+          let text = "";
+          files.forEach((file) => {
+            text += `// --- ${file.path} ---\n`;
+            text += file.content + "\n\n";
+          });
+          return text;
+        }
+      });
+    </script>
+  </body>
+</html>
+
