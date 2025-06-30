@@ -68,6 +68,32 @@ textarea::-webkit-scrollbar-thumb {
   border-radius: 4px;
 }
 
+footer {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem; /* small text */
+  color: #9ca3af; /* gray-400 */
+  text-align: center;
+  width: 100%;
+  max-width: 640px; /* match max-w-4xl */
+  padding: 0 1rem;
+  z-index: 100;
+}
+
+footer a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+}
+
+footer a:hover {
+  color: #6366f1; /* indigo-500 */
+  text-decoration: underline;
+}
+
+
 /* Keep code font consistent */
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',

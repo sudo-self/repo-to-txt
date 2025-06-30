@@ -296,8 +296,9 @@ function RepoToTxt() {
 
   return (
     <>
-      <div className="bg-repos max-w-4xl mx-auto mb-6 mt-8 px-4">
-        <img src={logo} alt="Logo" className="App-logo mx-auto mb-4 max-h-24" />
+          <div className="bg-repos max-w-5xl mx-auto mb-10 mt-12 px-6 py-4">
+
+        <img src={logo} alt="Logo" className="App-logo mx-auto mb-4 max-h-40" />
         <div className="github-button mt-4 text-center">
           <GitHubButton href="https://github.com/sudo-self" data-size="large">Follow @sudo-self</GitHubButton><br />
           <GitHubButton href="https://github.com/sudo-self/repo-to-txt" data-icon="octicon-star" data-size="large">Star</GitHubButton>
@@ -329,9 +330,24 @@ function RepoToTxt() {
         />
         <button type="submit" className="w-full bg-indigo-700 py-3 rounded text-white flex justify-center items-center space-x-2">
           <FolderSearch size={18} />
-          <span>List Repo</span>
+          <span>Repo Tree</span>
         </button>
       </form>
+          <footer className="max-w-4xl mx-auto mt-8 mb-8 text-center">
+            <a
+              href="https://repo-to-txt.pages.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block"
+            >
+              <img
+                src="https://img.shields.io/badge/repo%20to%20txt-pages%20dev-cyan"
+                alt="repo-to-txt badge"
+                className="mx-auto hover:opacity-80 transition-opacity duration-200"
+              />
+            </a>
+          </footer>
+
 
       {error && (
         <div className="max-w-4xl mx-auto mt-4 text-red-400 font-semibold">
@@ -352,15 +368,15 @@ function RepoToTxt() {
           <div className="max-w-4xl mx-auto mt-6 space-y-4">
             <button type="button" className="w-full bg-green-700 text-white py-3 rounded flex justify-center items-center space-x-2" onClick={onGenerateText}>
               <FileText />
-              <span>Generate Text</span>
+              <span>Create Text</span>
             </button>
             <textarea className="w-full bg-black text-white p-3 rounded font-mono" rows={10} readOnly value={outputText} />
             <div className="flex gap-2">
               <button type="button" className="flex-1 bg-indigo-600 text-white py-2 rounded flex justify-center items-center gap-1" onClick={onCopy}>
-                <Copy /> Copy
+                <Copy /> COPY
               </button>
               <button type="button" className="flex-1 bg-cyan-600 text-white py-2 rounded flex justify-center items-center gap-1" onClick={onDownload}>
-                <Download /> Download .txt
+                <Download /> TXT
               </button>
               <button type="button" className="flex-1 bg-gray-600 text-white py-2 rounded flex justify-center items-center gap-1" onClick={onZip}>
                 <Archive /> ZIP
