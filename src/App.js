@@ -22,11 +22,8 @@ const BG_IMAGE =
 
 function RepoToTxt() {
   const [repoUrl, setRepoUrl] = useState("");
-  const [ref, setRef] = useState("");
-  const [path, setPath] = useState("");
   const [accessToken, setAccessToken] = useState("");
   const [tokenInfoVisible, setTokenInfoVisible] = useState(false);
-
   const [directoryTree, setDirectoryTree] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState(new Set());
   const [outputText, setOutputText] = useState("");
@@ -35,46 +32,33 @@ function RepoToTxt() {
 
   const parseRepoUrl = (url) => {
     url = url.replace(/\/$/, "");
-    const urlPattern =
-      /^https:\/\/github\.com\/([^/]+)\/([^/]+)(\/tree\/([^/]+)(\/(.+))?)?$/;
-    const match = url.match(urlPattern);
+    const match = url.match(
+      /^https:\/\/github\.com\/([^/]+)\/([^/]+)(\/tree\/([^/]+)(\/(.+))?)?$/
+    );
     if (!match) {
-      throw new Error(
-        "Invalid GitHub repository URL. Format: https://github.com/owner/repo or https://github.com/owner/repo/tree/branch/path"
-      );
+      throw new Error("Invalid GitHub repository URL.");
     }
     return {
       owner: match[1],
       repo: match[2],
-      refFromUrl: match[4],
-      pathFromUrl: match[6],
+      ref: match[4],
+      path: match[6],
     };
   };
 
   const fetchRepoSha = async (owner, repo, refParam, pathParam, token) => {
-    let apiPath = pathParam ? `${pathParam}` : "";
+    let apiPath = pathParam || "";
     let url = `https://api.github.com/repos/${owner}/${repo}/contents/${apiPath}`;
     if (refParam) url += `?ref=${refParam}`;
 
     const headers = { Accept: "application/vnd.github.object+json" };
     if (token) headers.Authorization = `token ${token}`;
 
-    const response = await fetch(url, { headers });
-    if (!response.ok) {
-      if (
-        response.status === 403 &&
-        response.headers.get("X-RateLimit-Remaining") === "0"
-      ) {
-        throw new Error(
-          "GitHub API rate limit exceeded. Try later or use a valid access token."
-        );
-      }
-      if (response.status === 404) {
-        throw new Error("Repository, branch, or path not found.");
-      }
-      throw new Error(`Failed to fetch repository SHA. Status: ${response.status}`);
+    const res = await fetch(url, { headers });
+    if (!res.ok) {
+      throw new Error("Failed to fetch SHA");
     }
-    const data = await response.json();
+    const data = await res.json();
     return data.sha;
   };
 
@@ -83,22 +67,11 @@ function RepoToTxt() {
     const headers = { Accept: "application/vnd.github+json" };
     if (token) headers.Authorization = `token ${token}`;
 
-    const response = await fetch(url, { headers });
-    if (!response.ok) {
-      if (
-        response.status === 403 &&
-        response.headers.get("X-RateLimit-Remaining") === "0"
-      ) {
-        throw new Error("GitHub API rate limit exceeded.");
-      }
-      throw new Error(`Failed to fetch repository tree. Status: ${response.status}`);
-    }
-    const data = await response.json();
+    const res = await fetch(url, { headers });
+    if (!res.ok) throw new Error("Failed to fetch tree");
+    const data = await res.json();
     return data.tree;
   };
-
-  const sortContents = (contents) =>
-    contents.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
 
   const buildDirectoryStructure = (tree) => {
     const structure = {};
@@ -116,6 +89,9 @@ function RepoToTxt() {
     return structure;
   };
 
+  const sortContents = (contents) =>
+    contents.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
+
   const onSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -125,13 +101,9 @@ function RepoToTxt() {
     setSelectedFiles(new Set());
 
     try {
-      const { owner, repo, refFromUrl, pathFromUrl } = parseRepoUrl(repoUrl.trim());
-      const finalRef = ref || refFromUrl || "main";
-      const finalPath = path || pathFromUrl || "";
-
-      const sha = await fetchRepoSha(owner, repo, finalRef, finalPath, accessToken.trim());
+      const { owner, repo, ref, path } = parseRepoUrl(repoUrl.trim());
+      const sha = await fetchRepoSha(owner, repo, ref, path, accessToken.trim());
       const tree = await fetchRepoTree(owner, repo, sha, accessToken.trim());
-
       setDirectoryTree(buildDirectoryStructure(sortContents(tree)));
     } catch (err) {
       setError(err.message);
@@ -168,7 +140,6 @@ function RepoToTxt() {
     const isSelected = isDir
       ? allPaths.every((p) => selectedFiles.has(p))
       : selectedFiles.has(node.path);
-
     const common = [".js", ".ts", ".jsx", ".tsx", ".py", ".cpp", ".html", ".css"];
     const isCommon = !isDir && common.some((e) => node.path.toLowerCase().endsWith(e));
     const checked = isDir ? isSelected : selectedFiles.has(node.path) || isCommon;
@@ -223,7 +194,6 @@ function RepoToTxt() {
         else Object.values(node).forEach(flatten);
       };
       flatten(directoryTree);
-
       for (const path of paths) {
         const file = pathToItem[path];
         const headers = accessToken ? { Authorization: `token ${accessToken}` } : {};
@@ -265,15 +235,14 @@ function RepoToTxt() {
   const onZip = async () => {
     try {
       const zip = new JSZip();
-      const flatten = (node, pathToItem = {}) => {
-        if (node.type === "blob") pathToItem[node.path] = node;
-        else Object.values(node).forEach((n) => flatten(n, pathToItem));
-        return pathToItem;
+      const flatten = (node, map = {}) => {
+        if (node.type === "blob") map[node.path] = node;
+        else Object.values(node).forEach((n) => flatten(n, map));
+        return map;
       };
       const pathToItem = flatten(directoryTree);
       const headers = accessToken ? { Authorization: `token ${accessToken}` } : {};
       let totalSize = 0;
-
       for (const path of selectedFiles) {
         const file = pathToItem[path];
         const res = await fetch(file.url, { headers });
@@ -281,7 +250,6 @@ function RepoToTxt() {
         zip.file(file.path, blob);
         totalSize += blob.size;
       }
-
       const content = await zip.generateAsync({ type: "blob" });
       const url = URL.createObjectURL(content);
       const a = document.createElement("a");
@@ -304,12 +272,7 @@ function RepoToTxt() {
           <img src="https://img.shields.io/badge/repo-txt-blue" alt="badge" />
         </div>
         <div className="text-center mt-4">
-          <a
-            href="https://github.com/sudo-self/repo-to-txt"
-            className="text-blue-300 hover:underline"
-            target="_blank"
-            rel="noreferrer"
-          >
+          <a href="https://github.com/sudo-self/repo-to-txt" className="text-blue-300 hover:underline" target="_blank" rel="noreferrer">
             Star on GitHub
           </a>
         </div>
@@ -352,11 +315,7 @@ function RepoToTxt() {
         </button>
       </form>
 
-      {error && (
-        <div className="max-w-4xl mx-auto mt-4 text-red-400 whitespace-pre-wrap">
-          {error}
-        </div>
-      )}
+      {error && <div className="max-w-4xl mx-auto mt-4 text-red-400">{error}</div>}
 
       {directoryTree && (
         <>
@@ -367,6 +326,7 @@ function RepoToTxt() {
               ))}
             </ul>
           </div>
+
           <div className="max-w-4xl mx-auto mt-6 space-y-4">
             <button
               className="w-full bg-green-500 text-white py-3 rounded flex justify-center"
@@ -404,3 +364,4 @@ function RepoToTxt() {
 }
 
 export default RepoToTxt;
+
