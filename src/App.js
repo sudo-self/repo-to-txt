@@ -26,7 +26,6 @@ function RepoToTxt() {
   const [path, setPath] = useState("");
   const [accessToken, setAccessToken] = useState("");
   const [tokenInfoVisible, setTokenInfoVisible] = useState(false);
-
   const [directoryTree, setDirectoryTree] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState(new Set());
   const [outputText, setOutputText] = useState("");
@@ -36,13 +35,9 @@ function RepoToTxt() {
   const parseRepoUrl = (url) => {
     url = url.replace(/\/$/, "");
     const urlPattern =
-      /^https:\/\/github\.com\/([^/]+)\/([^/]+)(\/tree\/([^/]+)(\/(.+))?)?$/;
+      /^https:\/\/github\.com\/([^/]+)\/([^/]+)(\/tree\/([^/]+)(\/([^/]+))?)?$/;
     const match = url.match(urlPattern);
-    if (!match) {
-      throw new Error(
-        "Invalid GitHub repository URL. Format: https://github.com/owner/repo or https://github.com/owner/repo/tree/branch/path"
-      );
-    }
+    if (!match) throw new Error("Invalid GitHub URL");
     return {
       owner: match[1],
       repo: match[2],
@@ -52,30 +47,13 @@ function RepoToTxt() {
   };
 
   const fetchRepoSha = async (owner, repo, refParam, pathParam, token) => {
-    let apiPath = pathParam ? `${pathParam}` : "";
+    let apiPath = pathParam || "";
     let url = `https://api.github.com/repos/${owner}/${repo}/contents/${apiPath}`;
     if (refParam) url += `?ref=${refParam}`;
-
     const headers = { Accept: "application/vnd.github.object+json" };
     if (token) headers.Authorization = `token ${token}`;
-
     const response = await fetch(url, { headers });
-    if (!response.ok) {
-      if (
-        response.status === 403 &&
-        response.headers.get("X-RateLimit-Remaining") === "0"
-      ) {
-        throw new Error(
-          "GitHub API rate limit exceeded. Try later or use a valid access token."
-        );
-      }
-      if (response.status === 404) {
-        throw new Error(
-          "Repository, branch, or path not found. Check URL, branch/tag, and path."
-        );
-      }
-      throw new Error(`Failed to fetch repository SHA. Status: ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`Failed to fetch SHA: ${response.status}`);
     const data = await response.json();
     return data.sha;
   };
@@ -84,41 +62,28 @@ function RepoToTxt() {
     const url = `https://api.github.com/repos/${owner}/${repo}/git/trees/${sha}?recursive=1`;
     const headers = { Accept: "application/vnd.github+json" };
     if (token) headers.Authorization = `token ${token}`;
-
     const response = await fetch(url, { headers });
-    if (!response.ok) {
-      if (
-        response.status === 403 &&
-        response.headers.get("X-RateLimit-Remaining") === "0"
-      ) {
-        throw new Error(
-          "GitHub API rate limit exceeded. Try later or use a valid access token."
-        );
-      }
-      throw new Error(`Failed to fetch repository tree. Status: ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`Failed to fetch tree: ${response.status}`);
     const data = await response.json();
     return data.tree;
   };
 
-  const sortContents = (contents) => {
-    return contents.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
-  };
+  const sortContents = (contents) => contents.sort((a, b) => a.path.localeCompare(b.path));
 
   const buildDirectoryStructure = (tree) => {
-    const directoryStructure = {};
+    const structure = {};
     tree.forEach((item) => {
       if (item.type !== "blob") return;
-      const pathParts = item.path.split("/");
-      let currentLevel = directoryStructure;
-      pathParts.forEach((part, idx) => {
-        if (!currentLevel[part]) {
-          currentLevel[part] = idx === pathParts.length - 1 ? item : {};
+      const parts = item.path.split("/");
+      let current = structure;
+      parts.forEach((part, i) => {
+        if (!current[part]) {
+          current[part] = i === parts.length - 1 ? item : {};
         }
-        currentLevel = currentLevel[part];
+        current = current[part];
       });
     });
-    return directoryStructure;
+    return structure;
   };
 
   const onSubmit = async (e) => {
@@ -130,25 +95,29 @@ function RepoToTxt() {
     setSelectedFiles(new Set());
 
     try {
-      const { owner, repo, refFromUrl, pathFromUrl } = parseRepoUrl(repoUrl.trim());
+      const { owner, repo, refFromUrl, pathFromUrl } = parseRepoUrl(repoUrl);
       const finalRef = ref || refFromUrl || "main";
       const finalPath = path || pathFromUrl || "";
-
-      const sha = await fetchRepoSha(owner, repo, finalRef, finalPath, accessToken.trim());
-      const tree = await fetchRepoTree(owner, repo, sha, accessToken.trim());
-
+      const sha = await fetchRepoSha(owner, repo, finalRef, finalPath, accessToken);
+      const tree = await fetchRepoTree(owner, repo, sha, accessToken);
       setDirectoryTree(buildDirectoryStructure(sortContents(tree)));
     } catch (err) {
       setError(err.message);
     }
   };
 
-  const toggleSelection = (path, isDir = false, childrenPaths = []) => {
+  const getAllFilePaths = (node) => {
+    if (!node) return [];
+    if (node.type === "blob") return [node.path];
+    return Object.values(node).flatMap(getAllFilePaths);
+  };
+
+  const toggleSelection = (path, isDir, children) => {
     setSelectedFiles((prev) => {
       const newSet = new Set(prev);
       if (isDir) {
-        const allSelected = childrenPaths.every((p) => newSet.has(p));
-        childrenPaths.forEach((p) => {
+        const allSelected = children.every((p) => newSet.has(p));
+        children.forEach((p) => {
           if (allSelected) newSet.delete(p);
           else newSet.add(p);
         });
@@ -160,65 +129,37 @@ function RepoToTxt() {
     });
   };
 
-  const getAllFilePaths = (node) => {
-    if (!node) return [];
-    if (node.type === "blob") return [node.path];
-    return Object.values(node).flatMap(getAllFilePaths);
-  };
-
   const DirectoryNode = ({ name, node, level = 0 }) => {
     const [collapsed, setCollapsed] = useState(false);
-    const isDirectory = node.type !== "blob";
-    const allFilePaths = isDirectory ? getAllFilePaths(node) : [];
-
-    const isSelected = isDirectory
-      ? allFilePaths.every((p) => selectedFiles.has(p))
+    const isDir = node.type !== "blob";
+    const allPaths = isDir ? getAllFilePaths(node) : [];
+    const checked = isDir
+      ? allPaths.every((p) => selectedFiles.has(p))
       : selectedFiles.has(node.path);
 
-    const commonExtensions = [
-      ".js", ".py", ".java", ".cpp", ".html", ".css", ".ts", ".jsx", ".tsx",
-    ];
-    const isCommonFile =
-      !isDirectory &&
-      commonExtensions.some((ext) => node.path.toLowerCase().endsWith(ext));
-
-    const checked = isDirectory
-      ? isSelected
-      : selectedFiles.has(node.path) || (isCommonFile && !selectedFiles.has(node.path));
-
     return (
-      <li className="mb-1" style={{ paddingLeft: level * 16 }}>
-        <label className="flex items-center space-x-2 select-none cursor-pointer">
+      <li style={{ paddingLeft: level * 16 }}>
+        <label>
           <input
             type="checkbox"
             checked={checked}
-            onChange={() =>
-              toggleSelection(isDirectory ? null : node.path, isDirectory, allFilePaths)
-            }
-            className={isDirectory ? "mr-2 directory-checkbox" : "mr-2"}
+            onChange={() => toggleSelection(isDir ? name : node.path, isDir, allPaths)}
           />
-          {isDirectory ? (
+          {isDir ? (
             <>
-              <button
-                onClick={() => setCollapsed(!collapsed)}
-                aria-label={collapsed ? "Expand directory" : "Collapse directory"}
-                className="focus:outline-none"
-                type="button"
-              >
+              <button type="button" onClick={() => setCollapsed(!collapsed)}>
                 {collapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
               </button>
-              <Folder className="inline-block mr-1" size={16} />
-              <span>{name}</span>
+              <Folder size={16} /> {name}
             </>
           ) : (
             <>
-              <File className="inline-block mr-1" size={16} />
-              <span>{name}</span>
+              <File size={16} /> {name}
             </>
           )}
         </label>
-        {isDirectory && !collapsed && (
-          <ul className="ml-6 mt-1 list-disc">
+        {isDir && !collapsed && (
+          <ul>
             {Object.entries(node).map(([childName, childNode]) => (
               <DirectoryNode key={childName} name={childName} node={childNode} level={level + 1} />
             ))}
@@ -228,44 +169,30 @@ function RepoToTxt() {
     );
   };
 
-  const fetchFileContents = useCallback(
-    async (selectedFilePaths) => {
-      if (!directoryTree) return [];
+  const fetchFileContents = useCallback(async (paths) => {
+    if (!directoryTree) return [];
+    const map = {};
+    const flatten = (node) => {
+      if (node.type === "blob") map[node.path] = node;
+      else Object.values(node).forEach(flatten);
+    };
+    flatten(directoryTree);
 
-      const allFiles = [];
-      const pathToItem = {};
+    const headers = accessToken ? { Authorization: `token ${accessToken}` } : {};
+    const results = [];
 
-      const flattenTree = (node) => {
-        if (node.type === "blob") {
-          pathToItem[node.path] = node;
-          return;
-        }
-        Object.values(node).forEach(flattenTree);
-      };
-      flattenTree(directoryTree);
+    for (const path of paths) {
+      const file = map[path];
+      const res = await fetch(file.url, { headers });
+      const data = await res.json();
+      const content = data.encoding === "base64"
+        ? atob(data.content.replace(/\n/g, ""))
+        : data.content;
+      results.push({ path: file.path, content });
+    }
 
-      for (const path of selectedFilePaths) {
-        if (!pathToItem[path]) continue;
-        allFiles.push(pathToItem[path]);
-      }
-
-      const headers = accessToken ? { Authorization: `token ${accessToken}` } : {};
-      const results = [];
-
-      for (const file of allFiles) {
-        const response = await fetch(file.url, { headers });
-        if (!response.ok) throw new Error(`Failed to fetch file: ${file.path}`);
-        const data = await response.json();
-        const content = data.encoding === "base64"
-          ? atob(data.content.replace(/\n/g, ""))
-          : data.content;
-        results.push({ path: file.path, content });
-      }
-
-      return results;
-    },
-    [directoryTree, accessToken]
-  );
+    return results;
+  }, [directoryTree, accessToken]);
 
   const formatRepoContents = (files) => {
     return files.map(file => `// --- ${file.path} ---\n${file.content}`).join("\n\n");
@@ -274,28 +201,20 @@ function RepoToTxt() {
   const onGenerateText = async () => {
     setError(null);
     setOutputText("");
-    setFileSize(null);
-
     try {
       if (selectedFiles.size === 0) throw new Error("No files selected");
-
       const files = await fetchFileContents(Array.from(selectedFiles));
       const formatted = formatRepoContents(files);
       setOutputText(formatted);
     } catch (err) {
-      setError(`Error generating text file: ${err.message}`);
+      setError(err.message);
     }
   };
 
-  const onCopy = () => {
-    navigator.clipboard.writeText(outputText).catch(() => alert("Failed to copy"));
-  };
+  const onCopy = () => navigator.clipboard.writeText(outputText);
 
   const onDownload = () => {
-    if (!outputText.trim()) {
-      alert("No content to download.");
-      return;
-    }
+    if (!outputText.trim()) return;
     const blob = new Blob([outputText], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -305,249 +224,26 @@ function RepoToTxt() {
     URL.revokeObjectURL(url);
   };
 
-  const onZip = async () => {
-    if (selectedFiles.size === 0) return alert("Select at least one file.");
-    try {
-      const zip = new JSZip();
-      const headers = accessToken ? { Authorization: `token ${accessToken}` } : {};
-      const pathToItem = {};
-      const flattenTree = (node) => {
-        if (node.type === "blob") pathToItem[node.path] = node;
-        else Object.values(node).forEach(flattenTree);
-      };
-      flattenTree(directoryTree);
-
-      let totalSize = 0;
-      for (const path of selectedFiles) {
-        const file = pathToItem[path];
-        const res = await fetch(file.url, { headers });
-        const blob = await res.blob();
-        zip.file(file.path, blob);
-        totalSize += blob.size;
-      }
-
-      setFileSize(`ZIP size: ${(totalSize / 1024).toFixed(2)} KB`);
-      const content = await zip.generateAsync({ type: "blob" });
-      const url = URL.createObjectURL(content);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "repo_files.zip";
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      setError(`Error creating ZIP: ${err.message}`);
-    }
-  };
-
   return (
-    <>
-      <style>{`
-        body {
-          background-color: #1a202c;
-          color: #e2e8f0;
-        }
-      `}</style>
-      <div
-        className="max-w-4xl mx-auto rounded-2xl shadow-lg p-8 relative bg-cover bg-center mb-6"
-        style={{ backgroundImage: `url(${BG_IMAGE})` }}
-      >
-        <div className="flex flex-col items-center mb-6">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="text-4xl font-extrabold text-center">GitHub Repo to TXT</h1>
-          <img
-            src="https://img.shields.io/badge/repo-txt-blue"
-            alt="Badge"
-            className="mt-4"
-          />
-        </div>
-        <div className="flex justify-center mt-4">
-          <a
-            className="github-button"
-            href="https://github.com/sudo-self/repo-to-txt"
-            data-icon="octicon-star"
-            data-size="large"
-            aria-label="Star sudo-self/repo-to-txt on GitHub"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Star
-          </a>
-        </div>
-      </div>
-
-      <form
-        className="max-w-4xl mx-auto mt-8 space-y-6"
-        onSubmit={onSubmit}
-        noValidate
-      >
-        <div>
-          <label htmlFor="repoUrl" className="block text-sm font-semibold mb-1">
-            GitHub URL
-          </label>
-          <input
-            type="text"
-            id="repoUrl"
-            name="repoUrl"
-            required
-            placeholder="https://github.com/username/repo"
-            className="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-400 focus:ring focus:ring-blue-300"
-            value={repoUrl}
-            onChange={(e) => setRepoUrl(e.target.value)}
-          />
-        </div>
-
-        {/* Hidden inputs ref and path - keep for future use */}
-        <input
-          type="hidden"
-          id="ref"
-          name="ref"
-          value={ref}
-          onChange={(e) => setRef(e.target.value)}
-        />
-        <input
-          type="hidden"
-          id="path"
-          name="path"
-          value={path}
-          onChange={(e) => setPath(e.target.value)}
-        />
-
-        <div>
-          <label
-            htmlFor="accessToken"
-            className="block text-sm font-semibold mb-1 flex items-center gap-2"
-          >
-            Personal Access Token (optional)
-            <button
-              type="button"
-              onClick={() => setTokenInfoVisible((v) => !v)}
-              className="text-blue-400 hover:text-blue-300"
-              aria-label="Toggle token info"
-            >
-              {tokenInfoVisible ? <X size={16} /> : <Info size={16} />}
-            </button>
-          </label>
-          {tokenInfoVisible && (
-            <div className="mt-2 text-sm text-gray-400">
-              <p>This runs in your browser. No data is stored.</p>
-              <a
-                href="https://github.com/settings/tokens/new?description=repo2file&scopes=repo"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center mt-1 text-blue-400 hover:text-blue-300"
-              >
-                <ExternalLink size={16} className="mr-1" />
-                Get your token
-              </a>
-            </div>
-          )}
-          <input
-            type="text"
-            id="accessToken"
-            name="accessToken"
-            className="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-400 focus:ring focus:ring-blue-300"
-            value={accessToken}
-            onChange={(e) => setAccessToken(e.target.value)}
-          />
-        </div>
-
-        <button
-          type="submit"
-          className="w-full bg-green-700 hover:bg-indigo-500 text-white font-semibold py-3 rounded-lg flex items-center justify-center"
-          aria-label="Fetch Directory Structure"
-        >
-          <FolderSearch className="w-5 h-5 mr-2" />
-          Fetch Directory Structure
-        </button>
+    <div>
+      <form onSubmit={onSubmit}>
+        <input value={repoUrl} onChange={(e) => setRepoUrl(e.target.value)} placeholder="https://github.com/user/repo" />
+        <button type="submit">Fetch</button>
       </form>
-
-      {error && (
-        <div className="max-w-4xl mx-auto mt-6 text-red-500 whitespace-pre-wrap">{error}</div>
-      )}
-
+      {error && <div style={{ color: "red" }}>{error}</div>}
       {directoryTree && (
-        <>
-          <div
-            id="directoryStructure"
-            className="max-w-4xl mx-auto mt-8 bg-gray-800 p-4 rounded-lg overflow-auto max-h-96"
-          >
-            <ul>
-              {Object.entries(directoryTree).map(([name, node]) => (
-                <DirectoryNode key={name} name={name} node={node} />
-              ))}
-            </ul>
-          </div>
-
-          <div className="max-w-4xl mx-auto mt-6 flex flex-col items-center">
-            <button
-              onClick={onGenerateText}
-              className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-lg flex items-center justify-center"
-              type="button"
-              aria-label="Generate Text File"
-            >
-              <FileText className="w-5 h-5 mr-2" />
-              Generate Text File
-            </button>
-
-            <textarea
-              id="outputText"
-              rows={15}
-              className="w-full mt-6 p-4 bg-gray-700 border border-gray-600 rounded-lg font-mono text-gray-100"
-              readOnly
-              value={outputText}
-              placeholder="Generated text will appear here..."
-            />
-
-            <div className="w-full flex flex-col md:flex-row gap-4 mt-4">
-              <button
-                onClick={onCopy}
-                className={`flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-3 rounded-lg flex items-center justify-center ${
-                  outputText ? "block" : "hidden"
-                }`}
-                type="button"
-                aria-label="Copy to Clipboard"
-              >
-                <Copy className="w-5 h-5 mr-2" />
-                Copy to Clipboard
-              </button>
-              <button
-                onClick={onDownload}
-                className={`flex-1 bg-cyan-500 hover:bg-cyan-800 text-white font-semibold py-3 rounded-lg flex items-center justify-center ${
-                  outputText ? "block" : "hidden"
-                }`}
-                type="button"
-                aria-label="Download TXT"
-              >
-                <Download className="w-5 h-5 mr-2" />
-                Download TXT
-              </button>
-              <button
-                onClick={onZip}
-                className={`flex-1 bg-gray-500 hover:bg-gray-800 text-white font-semibold py-3 rounded-lg flex items-center justify-center ${
-                  directoryTree ? "block" : "hidden"
-                }`}
-                type="button"
-                aria-label="Download Repo ZIP"
-              >
-                <Archive className="w-5 h-5 mr-2" />
-                Repo ZIP
-              </button>
-            </div>
-
-            {fileSize && (
-              <div id="fileSize" className="text-sm mt-2 text-gray-400">
-                {fileSize}
-              </div>
-            )}
-          </div>
-        </>
+        <ul>
+          {Object.entries(directoryTree).map(([name, node]) => (
+            <DirectoryNode key={name} name={name} node={node} />
+          ))}
+        </ul>
       )}
-
-      {/* GitHub buttons script */}
-      <script async defer src="https://buttons.github.io/buttons.js"></script>
-    </>
+      <button onClick={onGenerateText}>Generate Text</button>
+      <button onClick={onCopy}>Copy</button>
+      <button onClick={onDownload}>Download</button>
+      <textarea value={outputText} readOnly rows={10} cols={80} />
+    </div>
   );
 }
 
 export default RepoToTxt;
-
