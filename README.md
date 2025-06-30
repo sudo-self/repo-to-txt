@@ -1,71 +1,70 @@
-# GitHub Repo to TXT
+# Getting Started with Create React App
 
-This web application allows you to fetch the directory structure and file contents of any public or private GitHub repository (with an optional Personal Access Token) and generate a combined plain text (.txt) file containing the contents of selected files.
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Features
+## Available Scripts
 
-- Enter any GitHub repository URL (including branch and path).
-- Optional GitHub Personal Access Token (PAT) to access private repos or avoid rate limits.
-- Fetch and display the entire repository directory structure as nested checkboxes.
-- Select specific files or folders to include.
-- Generate a single combined `.txt` file with the contents of selected files, separated by file path headers.
-- Copy the generated text to clipboard.
-- Download the generated text file.
-- Download a ZIP archive of selected files.
-- Responsive UI with collapsible folder tree and icons.
-- Runs entirely in the browser — no data is stored or sent to any server.
+In the project directory, you can run:
 
-## How to Use
+### `npm start`
 
-1. **Enter the GitHub repository URL** in the input box. Examples:
+Runs the app in the development mode.\
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-https://github.com/username/repo
-https://github.com/username/repo/tree/main
-https://github.com/username/repo/tree/main/path/to/subdirectory
+The page will reload when you make changes.\
+You may also see any lint errors in the console.
 
+### `npm test`
 
-2. (Optional) **Enter a GitHub Personal Access Token (PAT)** if accessing private repositories or to increase API rate limits.
+Launches the test runner in the interactive watch mode.\
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-3. Click **Fetch Directory Structure**.
+### `npm run build`
 
-4. Once the repository tree loads, **select files or folders** you want included by checking their boxes. By default, common code files are preselected.
+Builds the app for production to the `build` folder.\
+It correctly bundles React in production mode and optimizes the build for the best performance.
 
-5. Click **Generate Text File** to fetch and combine the selected files' contents.
+The build is minified and the filenames include the hashes.\
+Your app is ready to be deployed!
 
-6. The combined text will appear in the text area below.
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-7. Use the **Copy to Clipboard** button to copy the text.
+### `npm run eject`
 
-8. Use the **Download TXT** button to save the combined file.
+**Note: this is a one-way operation. Once you `eject`, you can't go back!**
 
-9. Use the **Repo ZIP** button to download a ZIP archive of the selected files.
+If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-## Notes
+Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
-- If you don't specify a branch/tag in the URL or the hidden inputs, it defaults to `main`.
-- If you specify a subdirectory path, only that directory and its children will be fetched.
-- The Personal Access Token is never stored or sent anywhere except GitHub API.
-- The app handles GitHub API rate limits and will inform you if exceeded.
-- Large repositories or many selected files may take longer to fetch and generate.
+You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
-## Security
+## Learn More
 
-- This tool runs entirely client-side in your browser.
-- Your GitHub Personal Access Token is only used for API requests directly to GitHub.
-- No data is transmitted to or stored on any third-party server.
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-## Technologies Used
+To learn React, check out the [React documentation](https://reactjs.org/).
 
-- [Tailwind CSS](https://tailwindcss.com/) for styling.
-- [Lucide Icons](https://lucide.dev/) for UI icons.
-- [GitHub REST API](https://docs.github.com/en/rest) to fetch repo contents and trees.
-- [JSZip](https://stuk.github.io/jszip/) for ZIP file creation.
-- Vanilla JavaScript for functionality.
+### Code Splitting
 
-## License
+This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
 
-MIT License
+### Analyzing the Bundle Size
 
----
+This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
 
-Created by [sudo-self](https://github.com/sudo-self)
+### Making a Progressive Web App
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+
+### Advanced Configuration
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+
+### Deployment
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+
+### `npm run build` fails to minify
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
