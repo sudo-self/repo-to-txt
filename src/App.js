@@ -18,6 +18,8 @@ import {
 import logo from "./logo.svg";
 import "./App.css";
 
+const COMMON_EXTENSIONS = [".js", ".ts", ".jsx", ".tsx", ".py", ".cpp", ".html", ".css"];
+
 function RepoToTxt() {
   const [repoUrl, setRepoUrl] = useState("");
   const [accessToken, setAccessToken] = useState("");
@@ -33,46 +35,37 @@ function RepoToTxt() {
     const match = url.match(
       /^https:\/\/github\.com\/([^/]+)\/([^/]+)(\/tree\/([^/]+)(\/(.+))?)?$/
     );
-    if (!match) {
-      throw new Error("Invalid GitHub repository URL.");
-    }
-    return {
-      owner: match[1],
-      repo: match[2],
-      ref: match[4],
-      path: match[6],
-    };
+    if (!match) throw new Error("Invalid GitHub repository URL.");
+    return { owner: match[1], repo: match[2], ref: match[4], path: match[6] };
   };
 
-  const fetchRepoSha = async (owner, repo, refParam, pathParam, token) => {
-    let apiPath = pathParam || "";
+  const fetchRepoSha = async (owner, repo, ref, path, token) => {
+    let apiPath = path || "";
     let url = `https://api.github.com/repos/${owner}/${repo}/contents/${apiPath}`;
-    if (refParam) url += `?ref=${refParam}`;
-
+    if (ref) url += `?ref=${ref}`;
     const headers = { Accept: "application/vnd.github.object+json" };
     if (token) headers.Authorization = `token ${token}`;
-
     const res = await fetch(url, { headers });
-    if (!res.ok) {
-      throw new Error("Failed to fetch SHA");
-    }
+    if (!res.ok) throw new Error("Failed to fetch SHA");
     const data = await res.json();
     return data.sha;
   };
+    
+    
 
   const fetchRepoTree = async (owner, repo, sha, token) => {
     const url = `https://api.github.com/repos/${owner}/${repo}/git/trees/${sha}?recursive=1`;
     const headers = { Accept: "application/vnd.github+json" };
     if (token) headers.Authorization = `token ${token}`;
-
     const res = await fetch(url, { headers });
     if (!res.ok) throw new Error("Failed to fetch tree");
-    const data = await res.json();
-    return data.tree;
+    return (await res.json()).tree;
   };
 
   const buildDirectoryStructure = (tree) => {
     const structure = {};
+    const autoSelected = new Set();
+
     tree.forEach((item) => {
       if (item.type !== "blob") return;
       const parts = item.path.split("/");
@@ -83,8 +76,11 @@ function RepoToTxt() {
         }
         current = current[part];
       });
+      const isCommon = COMMON_EXTENSIONS.some(ext => item.path.toLowerCase().endsWith(ext));
+      if (isCommon) autoSelected.add(item.path);
     });
-    return structure;
+
+    return { structure, autoSelected };
   };
 
   const sortContents = (contents) =>
@@ -102,7 +98,10 @@ function RepoToTxt() {
       const { owner, repo, ref, path } = parseRepoUrl(repoUrl.trim());
       const sha = await fetchRepoSha(owner, repo, ref, path, accessToken.trim());
       const tree = await fetchRepoTree(owner, repo, sha, accessToken.trim());
-      setDirectoryTree(buildDirectoryStructure(sortContents(tree)));
+      const sorted = sortContents(tree);
+      const { structure, autoSelected } = buildDirectoryStructure(sorted);
+      setDirectoryTree(structure);
+      setSelectedFiles(autoSelected);
     } catch (err) {
       setError(err.message);
     }
@@ -138,9 +137,7 @@ function RepoToTxt() {
     const isSelected = isDir
       ? allPaths.every((p) => selectedFiles.has(p))
       : selectedFiles.has(node.path);
-    const common = [".js", ".ts", ".jsx", ".tsx", ".py", ".cpp", ".html", ".css"];
-    const isCommon = !isDir && common.some((e) => node.path.toLowerCase().endsWith(e));
-    const checked = isDir ? isSelected : selectedFiles.has(node.path) || isCommon;
+    const checked = isSelected;
 
     return (
       <li className="mb-1" style={{ paddingLeft: level * 16 }}>
@@ -224,55 +221,38 @@ function RepoToTxt() {
       setError(err.message);
     }
   };
-    
-    const fallbackCopy = (text) => {
-      const textarea = document.createElement("textarea");
-      textarea.value = text;
-      textarea.style.position = "fixed"; // prevent scroll jump
-      textarea.style.top = "0";
-      textarea.style.left = "0";
-      textarea.style.opacity = "0";
-      document.body.appendChild(textarea);
-      textarea.focus();
-      textarea.select();
 
-      try {
-        const successful = document.execCommand("copy");
-        console.log("Fallback copy success:", successful);
-      } catch (err) {
-        console.error("Fallback copy failed:", err);
-      }
+  const fallbackCopy = (text) => {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try {
+      document.execCommand("copy");
+    } catch (err) {
+      console.error("Fallback copy failed:", err);
+    }
+    document.body.removeChild(textarea);
+  };
 
-      document.body.removeChild(textarea);
-    };
+  const onCopy = () => {
+    if (!outputText) return;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(outputText)
+        .then(() => alert("Copied to clipboard!"))
+        .catch(() => {
+          fallbackCopy(outputText);
+          alert("Used fallback copy method.");
+        });
+    } else {
+      fallbackCopy(outputText);
+      alert("Copied using fallback.");
+    }
+  };
 
-
-    const onCopy = () => {
-      console.log("Copy function triggered");
-      if (!outputText) {
-        console.warn("No text to copy");
-        return;
-      }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(outputText)
-          .then(() => {
-            console.log("Copied using clipboard API");
-            alert("Copied to clipboard!");
-          })
-          .catch((err) => {
-            console.error("Clipboard API failed", err);
-            fallbackCopy(outputText);
-            alert("Used fallback copy method.");
-          });
-      } else {
-        fallbackCopy(outputText);
-        alert("Copied using fallback method.");
-      }
-    };
-
-
-
-    
   const onDownload = () => {
     const blob = new Blob([outputText], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -316,71 +296,40 @@ function RepoToTxt() {
 
   return (
     <>
-      <div className="bg-repos max-w-4xl mx-auto mb-6">
-        <img src={logo} alt="Logo" className="App-logo mx-auto mb-4" />
-        <h1 className="text-3xl font-bold mb-2 text-center">Github Repo to TXT</h1>
-        <img
-          src="https://img.shields.io/badge/sudo_self-repo_to_txt-blue"
-          alt="badge"
-          className="mx-auto"
-        />
+      <div className="bg-repos max-w-4xl mx-auto mb-6 mt-8 px-4">
+        <img src={logo} alt="Logo" className="App-logo mx-auto mb-4 max-h-24" />
         <div className="github-button mt-4 text-center">
-          <GitHubButton href="https://github.com/sudo-self/repo-to-txt" data-color-scheme="no-preference: light; light: light; dark: light_high_contrast;" data-icon="octicon-star" data-size="large" aria-label="Star sudo-self/repo-to-txt on GitHub">Star</GitHubButton>
+          <GitHubButton href="https://github.com/sudo-self" data-size="large">Follow @sudo-self</GitHubButton><br />
+          <GitHubButton href="https://github.com/sudo-self/repo-to-txt" data-icon="octicon-star" data-size="large">Star</GitHubButton>
         </div>
       </div>
 
       <form onSubmit={onSubmit} className="max-w-4xl mx-auto space-y-6">
-        <input
-          className="w-full p-3 rounded bg-black border border-gray-600 text-white font-mono"
-          placeholder="https://github.com/user/repo"
+        <input className="w-full p-3 rounded bg-black border border-gray-600 text-white font-mono"
+          placeholder="https://github.com/username/repo"
           value={repoUrl}
           onChange={(e) => setRepoUrl(e.target.value)}
-          spellCheck={false}
-          autoComplete="off"
-          autoCorrect="off"
-          autoCapitalize="off"
         />
         <div className="text-sm text-white flex items-center space-x-2">
           <span>Access Token (optional)</span>
-          <button
-            type="button"
-            onClick={() => setTokenInfoVisible(!tokenInfoVisible)}
-            className="focus:outline-none"
-            aria-label="Toggle token info"
-          >
-            {tokenInfoVisible ? <X size={14} /> : <Info size={14} />}
-          </button>
+          <button type="button" onClick={() => setTokenInfoVisible(!tokenInfoVisible)}>{tokenInfoVisible ? <X size={14} /> : <Info size={14} />}</button>
         </div>
         {tokenInfoVisible && (
-          <div className="max-w-4xl mx-auto mt-1 text-blue-400">
-            <a
-              href="https://github.com/settings/tokens/new"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center space-x-1 hover:underline"
-            >
+          <div className="text-blue-400 text-sm">
+            <a href="https://github.com/settings/tokens/new" target="_blank" rel="noreferrer" className="hover:underline flex items-center gap-1">
               <ExternalLink size={14} />
               <span>Generate Token</span>
             </a>
           </div>
         )}
-        <input
-          type="password"
-          className="w-full p-3 rounded bg-black border border-gray-600 text-white font-mono"
+        <input type="password" className="w-full p-3 rounded bg-black border border-gray-600 text-white font-mono"
           placeholder="Paste your token here"
           value={accessToken}
           onChange={(e) => setAccessToken(e.target.value)}
-          spellCheck={false}
-          autoComplete="off"
-          autoCorrect="off"
-          autoCapitalize="off"
         />
-        <button
-          type="submit"
-          className="w-full bg-indigo-700 py-3 rounded text-white flex justify-center items-center space-x-2"
-        >
+        <button type="submit" className="w-full bg-indigo-700 py-3 rounded text-white flex justify-center items-center space-x-2">
           <FolderSearch size={18} />
-          <span>Fetch Directory</span>
+          <span>List Repo</span>
         </button>
       </form>
 
@@ -401,44 +350,20 @@ function RepoToTxt() {
           </div>
 
           <div className="max-w-4xl mx-auto mt-6 space-y-4">
-            <button
-              type="button"
-              className="w-full bg-green-700 text-white py-3 rounded flex justify-center items-center space-x-2"
-              onClick={onGenerateText}
-            >
+            <button type="button" className="w-full bg-green-700 text-white py-3 rounded flex justify-center items-center space-x-2" onClick={onGenerateText}>
               <FileText />
               <span>Generate Text</span>
             </button>
-            <textarea
-              className="w-full bg-black text-white p-3 rounded font-mono"
-              rows={10}
-              readOnly
-              value={outputText}
-            />
+            <textarea className="w-full bg-black text-white p-3 rounded font-mono" rows={10} readOnly value={outputText} />
             <div className="flex gap-2">
-              <button
-                type="button"
-                className="flex-1 bg-indigo-600 text-white py-2 rounded flex justify-center items-center gap-1"
-                onClick={onCopy}
-              >
-                <Copy />
-                Copy
+              <button type="button" className="flex-1 bg-indigo-600 text-white py-2 rounded flex justify-center items-center gap-1" onClick={onCopy}>
+                <Copy /> Copy
               </button>
-              <button
-                type="button"
-                className="flex-1 bg-cyan-600 text-white py-2 rounded flex justify-center items-center gap-1"
-                onClick={onDownload}
-              >
-                <Download />
-                Download .txt
+              <button type="button" className="flex-1 bg-cyan-600 text-white py-2 rounded flex justify-center items-center gap-1" onClick={onDownload}>
+                <Download /> Download .txt
               </button>
-              <button
-                type="button"
-                className="flex-1 bg-gray-600 text-white py-2 rounded flex justify-center items-center gap-1"
-                onClick={onZip}
-              >
-                <Archive />
-                ZIP
+              <button type="button" className="flex-1 bg-gray-600 text-white py-2 rounded flex justify-center items-center gap-1" onClick={onZip}>
+                <Archive /> ZIP
               </button>
             </div>
             {fileSize && (
@@ -452,5 +377,6 @@ function RepoToTxt() {
 }
 
 export default RepoToTxt;
+
 
 
