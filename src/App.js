@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import JSZip from "jszip";
 import {
   FolderSearch,
@@ -19,8 +19,6 @@ import "./App.css";
 
 const BG_IMAGE =
   "https://pub-c1de1cb456e74d6bbbee111ba9e6c757.r2.dev/gd.jpg";
-const ICON_IMAGE =
-  "https://pub-c1de1cb456e74d6bbbee111ba9e6c757.r2.dev/icon.png";
 
 function RepoToTxt() {
   const [repoUrl, setRepoUrl] = useState("");
@@ -35,11 +33,10 @@ function RepoToTxt() {
   const [fileSize, setFileSize] = useState(null);
   const [error, setError] = useState(null);
 
-  // Parse URL helper
   const parseRepoUrl = (url) => {
     url = url.replace(/\/$/, "");
     const urlPattern =
-      /^https:\/\/github\.com\/([^\/]+)\/([^\/]+)(\/tree\/([^\/]+)(\/(.+))?)?$/;
+      /^https:\/\/github\.com\/([^/]+)\/([^/]+)(\/tree\/([^/]+)(\/(.+))?)?$/;
     const match = url.match(urlPattern);
     if (!match) {
       throw new Error(
@@ -54,7 +51,6 @@ function RepoToTxt() {
     };
   };
 
-  // Fetch repo SHA
   const fetchRepoSha = async (owner, repo, refParam, pathParam, token) => {
     let apiPath = pathParam ? `${pathParam}` : "";
     let url = `https://api.github.com/repos/${owner}/${repo}/contents/${apiPath}`;
@@ -84,7 +80,6 @@ function RepoToTxt() {
     return data.sha;
   };
 
-  // Fetch repo tree
   const fetchRepoTree = async (owner, repo, sha, token) => {
     const url = `https://api.github.com/repos/${owner}/${repo}/git/trees/${sha}?recursive=1`;
     const headers = { Accept: "application/vnd.github+json" };
@@ -106,12 +101,10 @@ function RepoToTxt() {
     return data.tree;
   };
 
-  // Sort by path
   const sortContents = (contents) => {
     return contents.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
   };
 
-  // Build tree structure from flat list
   const buildDirectoryStructure = (tree) => {
     const directoryStructure = {};
     tree.forEach((item) => {
@@ -128,7 +121,6 @@ function RepoToTxt() {
     return directoryStructure;
   };
 
-  // Handle form submit
   const onSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -151,12 +143,10 @@ function RepoToTxt() {
     }
   };
 
-  // Toggle directory/file selection
   const toggleSelection = (path, isDir = false, childrenPaths = []) => {
     setSelectedFiles((prev) => {
       const newSet = new Set(prev);
       if (isDir) {
-        // Select/deselect all children
         const allSelected = childrenPaths.every((p) => newSet.has(p));
         childrenPaths.forEach((p) => {
           if (allSelected) newSet.delete(p);
@@ -170,20 +160,15 @@ function RepoToTxt() {
     });
   };
 
-  // Recursively get all file paths in directory structure for selection toggling
   const getAllFilePaths = (node) => {
     if (!node) return [];
     if (node.type === "blob") return [node.path];
     return Object.values(node).flatMap(getAllFilePaths);
   };
 
-  // Render directory tree recursively
   const DirectoryNode = ({ name, node, level = 0 }) => {
     const [collapsed, setCollapsed] = useState(false);
-
     const isDirectory = node.type !== "blob";
-
-    // For directories, get all file paths inside for selection toggling
     const allFilePaths = isDirectory ? getAllFilePaths(node) : [];
 
     const isSelected = isDirectory
@@ -191,21 +176,12 @@ function RepoToTxt() {
       : selectedFiles.has(node.path);
 
     const commonExtensions = [
-      ".js",
-      ".py",
-      ".java",
-      ".cpp",
-      ".html",
-      ".css",
-      ".ts",
-      ".jsx",
-      ".tsx",
+      ".js", ".py", ".java", ".cpp", ".html", ".css", ".ts", ".jsx", ".tsx",
     ];
     const isCommonFile =
       !isDirectory &&
       commonExtensions.some((ext) => node.path.toLowerCase().endsWith(ext));
 
-    // Checkbox checked by default if common file
     const checked = isDirectory
       ? isSelected
       : selectedFiles.has(node.path) || (isCommonFile && !selectedFiles.has(node.path));
@@ -252,15 +228,13 @@ function RepoToTxt() {
     );
   };
 
-  // Fetch file contents for selected files
   const fetchFileContents = useCallback(
     async (selectedFilePaths) => {
       if (!directoryTree) return [];
 
       const allFiles = [];
-
       const pathToItem = {};
-      // Flatten directoryTree for quick lookup by path
+
       const flattenTree = (node) => {
         if (node.type === "blob") {
           pathToItem[node.path] = node;
@@ -282,13 +256,9 @@ function RepoToTxt() {
         const response = await fetch(file.url, { headers });
         if (!response.ok) throw new Error(`Failed to fetch file: ${file.path}`);
         const data = await response.json();
-
-        let content = "";
-        if (data.encoding === "base64") {
-          content = atob(data.content.replace(/\n/g, ""));
-        } else {
-          content = data.content;
-        }
+        const content = data.encoding === "base64"
+          ? atob(data.content.replace(/\n/g, ""))
+          : data.content;
         results.push({ path: file.path, content });
       }
 
@@ -297,17 +267,10 @@ function RepoToTxt() {
     [directoryTree, accessToken]
   );
 
-  // Format contents into text
   const formatRepoContents = (files) => {
-    let text = "";
-    files.forEach((file) => {
-      text += `// --- ${file.path} ---\n`;
-      text += file.content + "\n\n";
-    });
-    return text;
+    return files.map(file => `// --- ${file.path} ---\n${file.content}`).join("\n\n");
   };
 
-  // Handle generate text
   const onGenerateText = async () => {
     setError(null);
     setOutputText("");
@@ -320,21 +283,17 @@ function RepoToTxt() {
       const formatted = formatRepoContents(files);
       setOutputText(formatted);
     } catch (err) {
-      setError(
-        `Error generating text file: ${err.message}\n\nPlease ensure:\n1. You have selected at least one file.\n2. Your access token (if provided) is valid.\n3. Stable internet connection.\n4. GitHub API is accessible.`
-      );
+      setError(`Error generating text file: ${err.message}`);
     }
   };
 
-  // Copy outputText to clipboard
   const onCopy = () => {
-    navigator.clipboard.writeText(outputText).catch(() => alert("Failed to copy to clipboard"));
+    navigator.clipboard.writeText(outputText).catch(() => alert("Failed to copy"));
   };
 
-  // Download outputText as .txt file
   const onDownload = () => {
     if (!outputText.trim()) {
-      alert("No content to download. Please generate the text file first.");
+      alert("No content to download.");
       return;
     }
     const blob = new Blob([outputText], { type: "text/plain" });
@@ -346,38 +305,23 @@ function RepoToTxt() {
     URL.revokeObjectURL(url);
   };
 
-  // Create ZIP of selected files
   const onZip = async () => {
-    if (selectedFiles.size === 0) {
-      alert("Please select at least one file.");
-      return;
-    }
-    setError(null);
-    setFileSize(null);
-
+    if (selectedFiles.size === 0) return alert("Select at least one file.");
     try {
       const zip = new JSZip();
       const headers = accessToken ? { Authorization: `token ${accessToken}` } : {};
-      let totalSize = 0;
-
       const pathToItem = {};
       const flattenTree = (node) => {
-        if (node.type === "blob") {
-          pathToItem[node.path] = node;
-          return;
-        }
-        Object.values(node).forEach(flattenTree);
+        if (node.type === "blob") pathToItem[node.path] = node;
+        else Object.values(node).forEach(flattenTree);
       };
       flattenTree(directoryTree);
 
+      let totalSize = 0;
       for (const path of selectedFiles) {
         const file = pathToItem[path];
-        if (!file) continue;
-
-        const response = await fetch(file.url, { headers });
-        if (!response.ok)
-          throw new Error(`Failed to fetch ${file.path} (status ${response.status})`);
-        const blob = await response.blob();
+        const res = await fetch(file.url, { headers });
+        const blob = await res.blob();
         zip.file(file.path, blob);
         totalSize += blob.size;
       }
